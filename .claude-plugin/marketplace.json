@@ -30,6 +30,34 @@
         "oauth"
       ],
       "category": "productivity"
+    },
+    {
+      "name": "factuarea-api",
+      "source": "./plugins/factuarea-api",
+      "description": "Five skills for developers building on the Factuarea public API: an entry-point guide (golden rules, authentication, local documentation search, recipes) that routes to setup with the official TypeScript and PHP SDKs, webhook receivers with signature verification, auditing an integration that is already written, and realigning it after a contract or SDK change. Declares no MCP server: no OAuth, no tools loaded at startup.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Factuarea",
+        "email": "info@factuarea.com"
+      },
+      "homepage": "https://docs.factuarea.com",
+      "repository": "https://github.com/factuarea/claude-plugins",
+      "license": "MIT",
+      "keywords": [
+        "factuarea",
+        "api",
+        "sdk",
+        "webhooks",
+        "integration",
+        "typescript",
+        "php",
+        "invoicing",
+        "facturacion",
+        "verifactu",
+        "facturae",
+        "spain"
+      ],
+      "category": "productivity"
     }
   ]
 }
