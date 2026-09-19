@@ -1,12 +1,12 @@
 ---
 name: factuarea-mcp
-description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, recurring & purchase invoices, clients, suppliers, products, document series, taxes, VeriFactu (AEAT), webhooks and a business dashboard for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their accounting data — search/create/send invoices, manage clients, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, the error envelope, and test (sandbox) mode.
+description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, recurring & purchase invoices, sales orders, purchase orders and goods receipts, warehouses with stock transfers and reservations, fulfilment and carriers, returns, storefront credentials, clients, suppliers, contacts, products, price lists, document series, taxes, VeriFactu (AEAT) and webhooks for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their accounting, order or stock data — search/create/send invoices, confirm a sales order, move stock between warehouses, ship a delivery, manage clients, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, the error envelope, and test (sandbox) mode.
 ---
 
 # Factuarea MCP server
 
-Factuarea is a multi-tenant invoicing SaaS for Spanish businesses. This plugin
-connects Claude Code to the **Factuarea MCP server** at
+Factuarea is a multi-tenant invoicing and ERP SaaS for Spanish businesses. This
+plugin connects Claude Code to the **Factuarea MCP server** at
 `https://mcp.factuarea.com` (HTTP transport), exposing the Factuarea public API
 as MCP tools. Every tool is bound to one company and one environment, and is
 gated by OAuth scopes, the company's subscription module, and feature flags.
@@ -60,51 +60,103 @@ only the prefix changes the environment.
 The catalog is the same set of tools, but the two channels resolve a **different
 maximum reach**:
 
-- **API key (owner's own key, scope `*`)** → the full catalog of **223 tools**.
+- **API key (owner's own key, scope `*`)** → the full catalog of **619 tools**.
   The owner is acting on their own company, so the key can cover everything,
   including the privileged operations below.
-- **OAuth (third-party app, curated scopes)** → **215 tools**. The OAuth scope
-  catalog deliberately **never grants** two privileged groups, so a third-party
-  app can never reach them on the user's behalf:
-  - `verifactu:write` — creating/retrying VeriFactu records, editing VeriFactu
-    settings, and uploading/activating/revoking FNMT certificates (7 tools).
-  - the GDPR forget operation on the delivery-note signature audit trail
-    (`forget_delivery_note_signature`, 1 tool).
-  VeriFactu **reads** (`verifactu:read`) remain available to OAuth apps.
+- **OAuth (third-party app, curated scopes)** → **518 tools**. The remaining
+  **101** are unreachable by consent: the OAuth scope catalog has no dotted
+  scope that translates to them, so a third-party app can never reach them on
+  the user's behalf. They fall into five groups:
+  - **Account and credential administration** — `account:write`, `api_keys:read`,
+    `api_keys:write`, `companies:read`, `companies:write`, `companies:delete`,
+    `developers:read`. Who holds the keys to the account is decided by the owner
+    from their own dashboard or with their own key, never by a delegated app.
+  - **VeriFactu writes** — `verifactu:write`: creating/retrying VeriFactu
+    records, editing VeriFactu settings, and uploading/activating/revoking FNMT
+    certificates. VeriFactu **reads** (`verifactu:read`) stay available.
+  - **Connected stores and money movement** — `stores:read`, `stores:write`,
+    `woocommerce_store:write`, `shopify_store:write`, `integration_events:read`,
+    `integration_events:write`, `payouts:read`, `stripe_autoinvoicing:read`,
+    `stripe_autoinvoicing:write`, `emails:read`.
+  - **Workforce actions taken on someone's behalf** — `absences:write`,
+    `absences:transition`, `time_entries:write`, `work_schedules:write`.
+  - **Irreversible or credential-shaped operations** —
+    `delivery_notes:gdpr_forget` (forgetting a delivery-note signature audit
+    trail), `automations:delete`, and the two ERP entries:
+    `warehouses:delete` (dropping a warehouse that still has stock and movements
+    behind it) and `storefront_keys:read` / `storefront_keys:write` /
+    `storefront_keys:delete` (managing the publishable storefront credential —
+    same rule as `api_keys:*`).
+
+  Everything else in the ERP surface **is** reachable by OAuth: of the 141 ERP
+  tools, 132 are consent-reachable and only those 9 are not. The buyer-lane
+  scopes `storefront:read` / `storefront:write` are not in this list because no
+  MCP tool declares them at all — that lane is the anonymous shopper's browser
+  key, not an agent channel.
 
 Beyond the channel, the tools you see in `tools/list` are further narrowed by:
 
 - the **scopes** actually granted (a tool whose `RequiredScope` you lack is
   hidden, and invoking it returns `insufficient_scope`);
-- the company's **subscription plan / module** (e.g. `vault:*` needs the Vault
-  module, plan empresario+); and
+- the company's **subscription plan / module** (e.g. `warehouses:*`,
+  `stock_transfers:*`, `fulfilment:*` and `returns:*` need their ERP module,
+  plan empresario+; `sales_orders:*` is available from emprendedor); and
 - **feature flags**.
 
 So an OAuth session with read-only scopes on an emprendedor plan will list far
-fewer than 215 tools — that's expected, not an error.
+fewer than 518 tools — that's expected, not an error.
 
-## Tool domains (15)
+## Tool domains (37)
 
 Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_client`,
-`mark_invoice_as_paid`). The catalog covers 15 domains:
+`mark_invoice_as_paid`). The catalog covers 37 domains and **619** tools.
+**Tools** is what an API key with scope `*` sees; **OAuth** is what a consent
+grant can reach (`all` when the whole domain is reachable). Rows marked ✦ are
+the ERP surface — orders, stock and fulfilment.
 
-| Domain | Tools | Scopes (read / write / other) |
-| --- | --- | --- |
-| Invoices | 30 | `invoices:read` · `invoices:write` · `invoices:send` · `invoices:delete` · `invoices:void` |
-| VeriFactu | 26 | `verifactu:read` · `verifactu:write` (API key only) |
-| Products | 19 | `products:read` · `products:write` · `products:delete` |
-| Delivery notes | 18 | `delivery_notes:read` · `delivery_notes:write` · `delivery_notes:transition` · `delivery_notes:delete` |
-| Quotes | 16 | `quotes:read` · `quotes:write` · `quotes:send` · `quotes:transition` · `quotes:delete` |
-| Pro-formas | 16 | `proformas:read` · `proformas:write` · `proformas:send` · `proformas:transition` · `proformas:delete` |
-| Taxes | 15 | `taxes:read` · `taxes:write` |
-| Purchase invoices | 14 | `purchase_invoices:read` · `purchase_invoices:write` · `purchase_invoices:transition` · `purchase_invoices:delete` |
-| Recurring invoices | 14 | `recurring_invoices:read` · `recurring_invoices:write` · `recurring_invoices:transition` · `recurring_invoices:delete` |
-| Webhooks | 12 | `webhooks:read` · `webhooks:write` · `webhooks:delete` · `events:read` |
-| Series | 11 | `series:read` · `series:write` (series are immutable: archive, never delete) |
-| Suppliers | 10 | `suppliers:read` · `suppliers:write` · `suppliers:delete` |
-| Clients | 9 | `clients:read` · `clients:write` · `clients:delete` |
-| Vault | 8 | `vault:read` · `vault:write` · `vault:delete` (Vault module, empresario+) |
-| Dashboard | 5 | `account:read` (KPIs, business summary, cash-flow, profit margin, charts) |
+| Domain | Tools | OAuth | Scopes |
+| --- | ---: | ---: | --- |
+| Invoices | 44 | all | `invoices:delete` · `invoices:read` · `invoices:send` · `invoices:void` · `invoices:write` · `pdfs:read` |
+| Products | 39 | all | `products:delete` · `products:read` · `products:write` |
+| Purchase orders & goods receipts ✦ | 38 | all | `goods_receipts:read` · `goods_receipts:transition` · `goods_receipts:write` · `pdfs:read` · `purchase_orders:delete` · `purchase_orders:read` · `purchase_orders:send` · `purchase_orders:transition` · `purchase_orders:write` |
+| Warehouses, stock transfers & reservations ✦ | 37 | 35 | `pdfs:read` · `products:read` · `stock_reservations:read` · `stock_reservations:write` · `stock_transfers:read` · `stock_transfers:transition` · `stock_transfers:write` · `warehouses:read` · `warehouses:write` · `warehouses:delete` *(API key only)* |
+| Time tracking | 29 | 17 | `payroll_exports:read` · `time_entries:read` · `time_entries:write` *(API key only)* |
+| VeriFactu | 27 | 19 | `verifactu:read` · `verifactu:write` *(API key only)* |
+| Sales orders ✦ | 26 | all | `pdfs:read` · `sales_orders:delete` · `sales_orders:read` · `sales_orders:send` · `sales_orders:transition` · `sales_orders:write` |
+| Absences | 25 | 10 | `absences:read` · `absences:transition` · `absences:write` *(API key only)* |
+| Connected stores & integrations | 22 | 0 | `integration_events:read` · `integration_events:write` · `payouts:read` · `shopify_store:write` · `stores:read` · `stores:write` · `stripe_autoinvoicing:read` · `stripe_autoinvoicing:write` · `woocommerce_store:write` *(API key only)* |
+| Delivery notes | 22 | 21 | `delivery_notes:delete` · `delivery_notes:read` · `delivery_notes:transition` · `delivery_notes:write` · `pdfs:read` · `delivery_notes:gdpr_forget` *(API key only)* |
+| Fulfilment & carriers ✦ | 21 | all | `carriers:delete` · `carriers:read` · `carriers:write` · `fulfilment:read` · `fulfilment:transition` · `fulfilment:write` · `pdfs:read` |
+| Pro-formas | 20 | all | `pdfs:read` · `proformas:delete` · `proformas:read` · `proformas:send` · `proformas:transition` · `proformas:write` |
+| Quotes | 20 | all | `pdfs:read` · `quotes:delete` · `quotes:read` · `quotes:send` · `quotes:transition` · `quotes:write` |
+| Automations | 18 | 17 | `automation_runs:read` · `automations:read` · `automations:write` · `automations:delete` *(API key only)* |
+| Contacts | 18 | all | `contacts:delete` · `contacts:read` · `contacts:write` |
+| Managed companies (gestoría) | 18 | 0 | `api_keys:read` · `api_keys:write` · `companies:delete` · `companies:read` · `companies:write` *(API key only)* |
+| Purchase invoices | 18 | all | `pdfs:read` · `purchase_invoices:delete` · `purchase_invoices:read` · `purchase_invoices:transition` · `purchase_invoices:write` |
+| Recurring invoices | 17 | all | `recurring_invoices:delete` · `recurring_invoices:read` · `recurring_invoices:transition` · `recurring_invoices:write` |
+| Taxes | 16 | all | `taxes:read` · `taxes:write` |
+| Clients | 13 | all | `clients:delete` · `clients:read` · `clients:write` |
+| Price lists | 13 | all | `price_lists:read` · `price_lists:write` |
+| Webhooks & events | 13 | all | `events:read` · `webhooks:delete` · `webhooks:read` · `webhooks:write` |
+| Employees | 12 | all | `employees:read` · `employees:write` |
+| Returns ✦ | 12 | all | `returns:read` · `returns:transition` · `returns:write` |
+| Series | 12 | all | `series:read` · `series:write` |
+| Suppliers | 12 | all | `suppliers:delete` · `suppliers:read` · `suppliers:write` |
+| Work schedules | 11 | 5 | `work_schedules:read` · `work_schedules:write` *(API key only)* |
+| Tax reports | 9 | all | `tax_reports:read` · `tax_reports:write` |
+| Storefront credentials ✦ | 7 | 0 | `storefront_keys:delete` · `storefront_keys:read` · `storefront_keys:write` *(API key only)* |
+| API keys | 5 | 2 | `account:read` · `account:write` *(API key only)* |
+| Employee seats | 5 | all | `employees:read` · `employees:write` |
+| FacturaE | 5 | all | `facturae:read` · `facturae:write` |
+| Company account | 4 | 3 | `account:read` · `account:write` *(API key only)* |
+| Emails | 3 | 0 | `emails:read` *(API key only)* |
+| Holidays | 3 | all | `holidays:read` |
+| Presence | 3 | all | `presence:read` |
+| Developer settings | 2 | 0 | `developers:read` *(API key only)* |
+
+Counts and scopes are taken from the published surface statistics of the
+contract (`public-api-stats.json`, measured 2026-09-18) and from the closed
+scope catalog; they are not hand-maintained lists.
 
 PDF downloads and payment receipts use the transversal `pdfs:read` scope;
 activity/event logs use `events:read`.
@@ -130,8 +182,8 @@ that names the transition.
   Loop while `has_more` is `true`, passing `next_cursor` (or the last `id`) as
   `starting_after`. There are no page numbers.
 - **Amounts** are EUR unless stated; **dates** are `YYYY-MM-DD`.
-- **File uploads** (product media, purchase-invoice attachments, vault docs,
-  FNMT certificates) travel as **base64 strings** in the tool arguments — the
+- **File uploads** (product media, purchase-invoice attachments, FNMT
+  certificates) travel as **base64 strings** in the tool arguments — the
   MCP transport has no multipart. The server decodes, validates size and magic
   bytes, then processes. Downloads come back as base64 too.
 
@@ -142,10 +194,14 @@ not the human message (messages are in Spanish):
 
 - `insufficient_scope` (`403`) — the token/key lacks the tool's `RequiredScope`.
   The fix is to re-authenticate (`/mcp` → Authenticate) and approve the scope,
-  or use a key that has it. Remember `verifactu:write` and the signature-forget
-  tool are **API-key only**.
+  or use a key that has it. Remember the five groups above — `verifactu:write`,
+  account/credential administration, connected stores, workforce actions and the
+  irreversible operations (including `warehouses:delete` and
+  `storefront_keys:*`) — are **API-key only**: no amount of re-consenting will
+  grant them.
 - `addon_not_active` / module-not-available — the tool's module isn't in the
-  company's plan (e.g. Vault on emprendedor). Not a bug; the plan must include it.
+  company's plan (e.g. the warehouses or fulfilment module on emprendedor). Not
+  a bug; the plan must include it.
 - **`422`** — validation or **business-rule violation** (invalid status
   transition, document not in an editable state, payment date out of range).
   Business-rule violations are `422`, not `403`/`409`.
