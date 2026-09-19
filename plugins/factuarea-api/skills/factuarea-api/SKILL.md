@@ -1,14 +1,23 @@
 ---
 name: factuarea-api
-description: Entry point for building on the Factuarea public API — invoicing, quotes, clients, suppliers, products, VeriFactu (AEAT) and webhooks for Spanish businesses. Use this when the user says they want to integrate with Factuarea, asks where to start, asks whether the API supports something, asks how to authenticate or which environment a key points at, or needs to find what the Factuarea documentation says about a topic. Carries the non-negotiable rules of the contract, how to look anything up locally with `factuarea docs`, and routes the job to the skill that owns it — `factuarea-implement` to write the calls, `factuarea-webhooks` for the receiver endpoint, `factuarea-audit` to review code already written, `factuarea-upgrade` after a contract or SDK change. Once the task is one of those four, hand over instead of answering here. Not for operating an existing Factuarea account through MCP tools — that is the separate `factuarea-mcp` plugin.
+description: Entry point for building on the Factuarea public API — invoicing, quotes, sales and purchase orders, goods receipts, warehouses and stock, fulfilment, returns, the storefront, clients, suppliers, contacts, products, price lists, VeriFactu (AEAT) and webhooks for Spanish businesses. Use this when the user says they want to integrate with Factuarea, asks where to start, asks whether the API supports something, asks how to authenticate or which environment a key points at, or needs to find what the Factuarea documentation says about a topic. Carries the non-negotiable rules of the contract, how to look anything up locally with `factuarea docs`, and routes the job to the skill that owns it — `factuarea-implement` to write the calls, `factuarea-webhooks` for the receiver endpoint, `factuarea-audit` to review code already written, `factuarea-upgrade` after a contract or SDK change. Once the task is one of those four, hand over instead of answering here. Not for operating an existing Factuarea account through MCP tools — that is the separate `factuarea-mcp` plugin.
 ---
 
 # Integrating with Factuarea
 
-Factuarea is a multi-tenant invoicing SaaS for Spanish businesses. Its public
-API (`https://api.factuarea.com/v1`) covers invoices, quotes, pro-formas,
-delivery notes, recurring and purchase invoices, clients, suppliers, products,
-document series, taxes, VeriFactu (AEAT) and webhooks.
+Factuarea is a multi-tenant invoicing and ERP SaaS for Spanish businesses. Its
+public API (`https://api.factuarea.com/v1`) covers invoices, quotes, pro-formas,
+delivery notes, recurring and purchase invoices, sales orders, purchase orders,
+goods receipts, warehouses with stock transfers, stock reservations and stock
+availability, carriers, returns, the storefront and its credentials, clients,
+suppliers, contacts, products, price lists, document series, taxes, VeriFactu
+(AEAT) and webhooks.
+
+The ERP half of that surface — orders, stock, fulfilment, returns and the
+storefront — is newer than the invoicing half. Nothing about the rules below
+changes for it: same envelope, same cursor, same opaque ids, same idempotency.
+Look up its exact operations the same way as any other, and never assume a
+resource exists because the domain suggests it should.
 
 This skill is the **orientation layer**: the rules that hold everywhere, how to
 look anything up, and who takes it from here. It deliberately does not repeat

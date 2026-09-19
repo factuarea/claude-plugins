@@ -1,8 +1,9 @@
 # factuarea-api
 
 Skills for **building** on the [Factuarea](https://factuarea.com) public API —
-invoicing, quotes, clients, suppliers, products, VeriFactu (AEAT) and webhooks
-for Spanish businesses.
+invoicing, quotes, sales and purchase orders, goods receipts, warehouses and
+stock, fulfilment, returns, the storefront, clients, suppliers, contacts,
+products, price lists, VeriFactu (AEAT) and webhooks for Spanish businesses.
 
 This plugin is about the code you write in **your own repository**. It declares
 **no MCP server**: nothing to authorise, no tools loaded into the session. The

@@ -3,8 +3,10 @@
 Connects [Claude Code](https://claude.com/claude-code) to the
 **[Factuarea](https://factuarea.com) MCP server** — the Factuarea public API
 exposed as tools for invoicing, quotes, pro-formas, delivery notes, recurring &
-purchase invoices, clients, suppliers, products, document series, taxes,
-VeriFactu (AEAT), webhooks and a business dashboard for Spanish companies.
+purchase invoices, sales orders, purchase orders and goods receipts, warehouses
+with stock transfers and reservations, fulfilment and carriers, returns,
+storefront credentials, clients, suppliers, contacts, products, price lists,
+document series, taxes, VeriFactu (AEAT) and webhooks for Spanish companies.
 
 The plugin ships two things:
 
@@ -62,11 +64,13 @@ guide those calls; you can also invoke it manually:
 
 - **Connecting** via OAuth (consent with company + environment selection) or an
   API key header.
-- **Channel policy** — an API key reaches the full **223 tools**; OAuth uses a
-  curated **215**, never granting `verifactu:write` or the GDPR signature-forget
-  operation to third-party apps.
-- **15 tool domains** and their scopes, plus how plan/module and feature flags
-  further narrow what's listed.
+- **Channel policy** — an API key reaches the full **619 tools**; OAuth reaches
+  **518**, because **101** sit behind scopes the consent catalog never grants —
+  account and credential administration, `verifactu:write`, connected stores,
+  workforce actions taken on someone's behalf, and irreversible operations such
+  as `warehouses:delete` or `storefront_keys:*`.
+- **37 tool domains** with their tool counts, OAuth reach and scopes, plus how
+  plan/module and feature flags further narrow what's listed.
 - **Identity** — opaque `id` (UUID v7), foreign keys as `*_id`.
 - **Cursor pagination** — `{ data, has_more, next_cursor }`, no page numbers.
 - **Errors** — `insufficient_scope`, `addon_not_active`, `422` business-rule
