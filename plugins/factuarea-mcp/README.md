@@ -63,8 +63,8 @@ guide those calls; you can also invoke it manually:
 
 - **Connecting** via OAuth (consent with company + environment selection) or an
   API key header.
-- **Channel policy** — an API key reaches the full **469 tools**; OAuth reaches
-  **369**, because **100** sit behind scopes the consent catalog never grants —
+- **Channel policy** — an API key reaches the full **470 tools**; OAuth reaches
+  **370**, because **100** sit behind scopes the consent catalog never grants —
   account, membership and credential administration, `verifactu:write`,
   connected stores, workforce actions taken on someone's behalf, and
   irreversible operations such as `delivery_notes:gdpr_forget` or

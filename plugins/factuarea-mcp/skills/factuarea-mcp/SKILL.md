@@ -60,10 +60,10 @@ only the prefix changes the environment.
 The catalog is the same set of tools, but the two channels resolve a **different
 maximum reach**:
 
-- **API key (owner's own key, scope `*`)** → the full catalog, **469 tools**.
+- **API key (owner's own key, scope `*`)** → the full catalog, **470 tools**.
   The owner is acting on their own company, so the key can cover everything,
   including the privileged operations below.
-- **OAuth (third-party app, curated scopes)** → **369 tools**. The remaining
+- **OAuth (third-party app, curated scopes)** → **370 tools**. The remaining
   **100** are unreachable by consent: the OAuth scope catalog has no dotted
   scope that translates to them, so a third-party app can never reach them on
   the user's behalf. They fall into five groups:
@@ -95,7 +95,7 @@ Beyond the channel, the tools you see in `tools/list` are further narrowed by:
 - **feature flags**.
 
 So an OAuth session with read-only scopes on an emprendedor plan will list far
-fewer than 369 tools — that's expected, not an error.
+fewer than 370 tools — that's expected, not an error.
 
 ## Tool domains (32)
 
@@ -104,7 +104,7 @@ Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_contact`,
 **OAuth** is what a consent grant can reach (`all` when the whole domain is
 reachable).
 
-The catalog is **469 tools** across **32 domains**, of which **369** are
+The catalog is **470 tools** across **32 domains**, of which **370** are
 reachable by an OAuth consent grant and **100** are API-key only.
 
 | Domain | Tools | OAuth | Scopes |
@@ -121,7 +121,7 @@ reachable by an OAuth consent grant and **100** are API-key only.
 | Quotes | 20 | all | `pdfs:read` · `quotes:delete` · `quotes:read` · `quotes:send` · `quotes:transition` · `quotes:write` |
 | Automations | 18 | 17 | `automation_runs:read` · `automations:read` · `automations:write` · `automations:delete` *(API key only)* |
 | Purchase invoices | 18 | all | `pdfs:read` · `purchase_invoices:delete` · `purchase_invoices:read` · `purchase_invoices:transition` · `purchase_invoices:write` |
-| Recurring invoices | 17 | all | `recurring_invoices:delete` · `recurring_invoices:read` · `recurring_invoices:transition` · `recurring_invoices:write` |
+| Recurring invoices | 18 | all | `recurring_invoices:delete` · `recurring_invoices:read` · `recurring_invoices:transition` · `recurring_invoices:write` |
 | Taxes | 16 | all | `taxes:read` · `taxes:write` |
 | Managed companies (gestoría) | 13 | 0 | `companies:delete` · `companies:read` · `companies:write` *(API key only)* |
 | Price lists | 13 | all | `price_lists:read` · `price_lists:write` |
