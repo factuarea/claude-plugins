@@ -12,6 +12,9 @@ Two sources, both live — never answer from memory:
 
 - **Live spec**: <https://api.factuarea.com/v1/openapi.json> (the same document
   the API serves; the `webhooks` block describes delivery headers and payloads).
+  The spec URL is itself a **root route** — it describes the whole v1 surface and
+  is identical for every credential, so it never takes a `/companies/{company}`
+  segment.
 - **Published SDK versions**: npm `@factuarea/sdk`, Packagist `factuarea/factuarea-php`.
   Read the registry, plus the repo's `CHANGELOG.md`, for what changed between the
   pinned version and the latest.
@@ -51,6 +54,32 @@ For each item, check the spec:
   value** → additive.
 - **Error `code` or status** the code branches on that no longer exists →
   breaking.
+
+Two shapes of drift are live right now and turn up in almost every report.
+Recognise them instead of rediscovering them:
+
+- **The company axis.** Company-scoped resources moved from the flat form to
+  `/v1/companies/{company}/…`, with `{company}` the company UUID. An operation
+  that looks *missing* under its flat path is usually present under the axis —
+  name the axis form as the documented replacement. Two families never take the
+  segment: the **root catalogs** (`/v1/openapi.json`, `/v1/event-catalog`,
+  `/v1/tax-catalog`, `/v1/payment-methods`, `/v1/payroll-export-formats`) and
+  **credential introspection** (`/v1/me`, which replaced `/v1/account`).
+  Account-level resources take the **account** axis instead —
+  `/v1/accounts/{account}/…`, e.g. `/v1/accounts/{account}/api-keys`. Never
+  repair drift by prefixing everything that contains `/v1/`: that breaks the
+  root catalogs in the opposite direction.
+- **Retired resources.** `clients` and `suppliers` are gone. They are **not**
+  re-anchored: `/v1/companies/{company}/clients` does not exist and answers
+  `404`. The replacement is `contacts` with a role —
+  `POST /v1/companies/{company}/contacts` with `roles: ["customer"]` or
+  `roles: ["supplier"]`, responses carrying `"object": "contact"`. The matching
+  scopes are `contacts:read|write|delete`; `clients:*` and `suppliers:*` are no
+  longer in the scope catalog.
+
+A report may quote the old flat path when it describes **what the code assumed
+before** — that is legitimate history. Label it as the previous form; never
+write it as a target.
 
 Live signal to look for in the user's logs or a probe request: the
 `Deprecation: true`, `Sunset:` and `Link: …; rel="deprecation"` response headers
@@ -143,7 +172,7 @@ renamed years ago or miss the one that broke them.
 
 ## Documentation (source of truth)
 
-- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json>
+- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json> — **root route**: it describes the whole v1 surface, so it takes no `/companies/{company}` segment
 - Versioning & deprecation policy: <https://docs.factuarea.com/guides/versioning>
 - Changelog: <https://docs.factuarea.com/changelog/launch>
 - SDKs: <https://docs.factuarea.com/sdks>

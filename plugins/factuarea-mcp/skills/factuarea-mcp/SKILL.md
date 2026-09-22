@@ -1,6 +1,6 @@
 ---
 name: factuarea-mcp
-description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, recurring & purchase invoices, clients, suppliers, products, document series, taxes, VeriFactu (AEAT), webhooks and a business dashboard for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their accounting data — search/create/send invoices, manage clients, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, the error envelope, and test (sandbox) mode.
+description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, recurring & purchase invoices, contacts (customers and suppliers are roles of one contact), products, price lists, document series, taxes, VeriFactu (AEAT) and webhooks for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their accounting data — search/create/send invoices, manage contacts, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, the error envelope, and test (sandbox) mode.
 ---
 
 # Factuarea MCP server
@@ -60,17 +60,31 @@ only the prefix changes the environment.
 The catalog is the same set of tools, but the two channels resolve a **different
 maximum reach**:
 
-- **API key (owner's own key, scope `*`)** → the full catalog of **223 tools**.
+- **API key (owner's own key, scope `*`)** → the full catalog, **469 tools**.
   The owner is acting on their own company, so the key can cover everything,
   including the privileged operations below.
-- **OAuth (third-party app, curated scopes)** → **215 tools**. The OAuth scope
-  catalog deliberately **never grants** two privileged groups, so a third-party
-  app can never reach them on the user's behalf:
-  - `verifactu:write` — creating/retrying VeriFactu records, editing VeriFactu
-    settings, and uploading/activating/revoking FNMT certificates (7 tools).
-  - the GDPR forget operation on the delivery-note signature audit trail
-    (`forget_delivery_note_signature`, 1 tool).
-  VeriFactu **reads** (`verifactu:read`) remain available to OAuth apps.
+- **OAuth (third-party app, curated scopes)** → **369 tools**. The remaining
+  **100** are unreachable by consent: the OAuth scope catalog has no dotted
+  scope that translates to them, so a third-party app can never reach them on
+  the user's behalf. They fall into five groups:
+  - **Account and credential administration** — `account:write`, `account:owner`,
+    `claim_tokens:read`, `claim_tokens:write`, `invitations:read`,
+    `invitations:write`, `members:read`, `members:write`, `companies:read`,
+    `companies:write`, `companies:delete`, `developers:read`. Who holds the keys
+    to the account, who sits in it and who owns it is decided by the owner from
+    their own dashboard or with their own key, never by a delegated app.
+  - **VeriFactu writes** — `verifactu:write`: creating/retrying VeriFactu
+    records, editing VeriFactu settings, and uploading/activating/revoking FNMT
+    certificates. VeriFactu **reads** (`verifactu:read`) stay available.
+  - **Connected stores and money movement** — `stores:read`, `stores:write`,
+    `woocommerce_store:write`, `shopify_store:write`, `integration_events:read`,
+    `integration_events:write`, `payouts:read`, `stripe_autoinvoicing:read`,
+    `stripe_autoinvoicing:write`, `emails:read`.
+  - **Workforce actions taken on someone's behalf** — `absences:write`,
+    `absences:transition`, `time_entries:write`, `work_schedules:write`.
+  - **Irreversible or credential-shaped operations** —
+    `delivery_notes:gdpr_forget` (forgetting a delivery-note signature audit
+    trail) and `automations:delete`.
 
 Beyond the channel, the tools you see in `tools/list` are further narrowed by:
 
@@ -81,30 +95,61 @@ Beyond the channel, the tools you see in `tools/list` are further narrowed by:
 - **feature flags**.
 
 So an OAuth session with read-only scopes on an emprendedor plan will list far
-fewer than 215 tools — that's expected, not an error.
+fewer than 369 tools — that's expected, not an error.
 
-## Tool domains (15)
+## Tool domains (32)
 
-Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_client`,
-`mark_invoice_as_paid`). The catalog covers 15 domains:
+Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_contact`,
+`mark_invoice_as_paid`). **Tools** is what an API key with scope `*` sees;
+**OAuth** is what a consent grant can reach (`all` when the whole domain is
+reachable).
 
-| Domain | Tools | Scopes (read / write / other) |
-| --- | --- | --- |
-| Invoices | 30 | `invoices:read` · `invoices:write` · `invoices:send` · `invoices:delete` · `invoices:void` |
-| VeriFactu | 26 | `verifactu:read` · `verifactu:write` (API key only) |
-| Products | 19 | `products:read` · `products:write` · `products:delete` |
-| Delivery notes | 18 | `delivery_notes:read` · `delivery_notes:write` · `delivery_notes:transition` · `delivery_notes:delete` |
-| Quotes | 16 | `quotes:read` · `quotes:write` · `quotes:send` · `quotes:transition` · `quotes:delete` |
-| Pro-formas | 16 | `proformas:read` · `proformas:write` · `proformas:send` · `proformas:transition` · `proformas:delete` |
-| Taxes | 15 | `taxes:read` · `taxes:write` |
-| Purchase invoices | 14 | `purchase_invoices:read` · `purchase_invoices:write` · `purchase_invoices:transition` · `purchase_invoices:delete` |
-| Recurring invoices | 14 | `recurring_invoices:read` · `recurring_invoices:write` · `recurring_invoices:transition` · `recurring_invoices:delete` |
-| Webhooks | 12 | `webhooks:read` · `webhooks:write` · `webhooks:delete` · `events:read` |
-| Series | 11 | `series:read` · `series:write` (series are immutable: archive, never delete) |
-| Suppliers | 10 | `suppliers:read` · `suppliers:write` · `suppliers:delete` |
-| Clients | 9 | `clients:read` · `clients:write` · `clients:delete` |
-| Vault | 8 | `vault:read` · `vault:write` · `vault:delete` (Vault module, empresario+) |
-| Dashboard | 5 | `account:read` (KPIs, business summary, cash-flow, profit margin, charts) |
+The catalog is **469 tools** across **32 domains**, of which **369** are
+reachable by an OAuth consent grant and **100** are API-key only.
+
+| Domain | Tools | OAuth | Scopes |
+| --- | ---: | ---: | --- |
+| Invoices | 44 | all | `invoices:delete` · `invoices:read` · `invoices:send` · `invoices:void` · `invoices:write` · `pdfs:read` |
+| Products | 38 | all | `products:delete` · `products:read` · `products:write` |
+| Time tracking | 29 | 17 | `payroll_exports:read` · `time_entries:read` · `time_entries:write` *(API key only)* |
+| VeriFactu | 27 | 19 | `verifactu:read` · `verifactu:write` *(API key only)* |
+| Contacts | 26 | all | `contacts:delete` · `contacts:read` · `contacts:write` |
+| Absences | 25 | 10 | `absences:read` · `absences:transition` · `absences:write` *(API key only)* |
+| Delivery notes | 22 | 21 | `delivery_notes:delete` · `delivery_notes:read` · `delivery_notes:transition` · `delivery_notes:write` · `pdfs:read` · `delivery_notes:gdpr_forget` *(API key only)* |
+| Connected stores & integrations | 20 | 0 | `integration_events:read` · `integration_events:write` · `payouts:read` · `shopify_store:write` · `stores:read` · `stores:write` · `stripe_autoinvoicing:read` · `stripe_autoinvoicing:write` · `woocommerce_store:write` *(API key only)* |
+| Pro-formas | 20 | all | `pdfs:read` · `proformas:delete` · `proformas:read` · `proformas:send` · `proformas:transition` · `proformas:write` |
+| Quotes | 20 | all | `pdfs:read` · `quotes:delete` · `quotes:read` · `quotes:send` · `quotes:transition` · `quotes:write` |
+| Automations | 18 | 17 | `automation_runs:read` · `automations:read` · `automations:write` · `automations:delete` *(API key only)* |
+| Purchase invoices | 18 | all | `pdfs:read` · `purchase_invoices:delete` · `purchase_invoices:read` · `purchase_invoices:transition` · `purchase_invoices:write` |
+| Recurring invoices | 17 | all | `recurring_invoices:delete` · `recurring_invoices:read` · `recurring_invoices:transition` · `recurring_invoices:write` |
+| Taxes | 16 | all | `taxes:read` · `taxes:write` |
+| Managed companies (gestoría) | 13 | 0 | `companies:delete` · `companies:read` · `companies:write` *(API key only)* |
+| Price lists | 13 | all | `price_lists:read` · `price_lists:write` |
+| Webhooks & events | 13 | all | `events:read` · `webhooks:delete` · `webhooks:read` · `webhooks:write` |
+| Employees | 12 | all | `employees:read` · `employees:write` |
+| Series | 12 | all | `series:read` · `series:write` |
+| Work schedules | 11 | 5 | `work_schedules:read` · `work_schedules:write` *(API key only)* |
+| Account members & invitations | 10 | 0 | `invitations:read` · `invitations:write` · `members:read` · `members:write` *(API key only)* |
+| Tax reports | 9 | all | `tax_reports:read` · `tax_reports:write` |
+| API keys | 5 | 2 | `account:read` · `account:write` *(API key only)* |
+| Employee seats | 5 | all | `employees:read` · `employees:write` |
+| FacturaE | 5 | all | `facturae:read` · `facturae:write` |
+| Account ownership & claim tokens | 4 | 0 | `account:owner` · `claim_tokens:read` · `claim_tokens:write` *(API key only)* |
+| Company account | 4 | 3 | `account:read` · `account:write` *(API key only)* |
+| Emails | 3 | 0 | `emails:read` *(API key only)* |
+| Holidays | 3 | all | `holidays:read` |
+| Presence | 3 | all | `presence:read` |
+| Account usage & issuing readiness | 2 | 1 | `account:read` · `companies:read` *(API key only)* |
+| Developer settings | 2 | 0 | `developers:read` *(API key only)* |
+
+The rows are **measured, not hand-maintained**: the domain is the
+`App\Mcp\Tools\<Domain>` namespace of every tool the public MCP server actually
+publishes, and the scopes are those tools' declared `RequiredScope`, counted
+through the same code path that answers `tools/list` for a reference holder
+(enterprise plan, scope `*`). Measured **2026-09-21** against the
+`nif-axis-api` branch. Every scope belongs to the closed scope catalog of the
+contract; `clients:*` and `suppliers:*` are no longer in it, which is why those
+two rows are gone.
 
 PDF downloads and payment receipts use the transversal `pdfs:read` scope;
 activity/event logs use `events:read`.
@@ -186,8 +231,11 @@ before keys or OAuth grants work. Request access at `info@factuarea.com`.
 ## Typical workflow
 
 1. **Read before you write.** Use `search_*` to find documents and `get_*` for
-   full detail before mutating. To bill a client, first `search_clients` and
-   `search_products` (or `find_client_by_tax_id`), then `create_invoice`.
+   full detail before mutating. To bill a customer, first `search_contacts` and
+   `search_products` (or `find_contact_by_tax_id`), then `create_invoice`. There
+   is no `search_clients` / `create_client`: a customer is a **role** of a
+   contact (`roles: ["customer"]`), and so is a supplier — `assign_contact_role`
+   adds the other role to the same tax id instead of duplicating it.
 2. **Stay in the sandbox** until the flow is correct.
 3. **Use the discrete transition tool** for state changes, and surface the
    Spanish `message` (or map by `code`) when a tool returns an error.

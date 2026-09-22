@@ -13,6 +13,17 @@ the live spec (<https://api.factuarea.com/v1/openapi.json>, top-level `webhooks`
 block). The event catalog is at [Events](https://docs.factuarea.com/guides/events).
 Don't invent event types or payload fields — look them up.
 
+> **Path shape in `v1`.** Webhook endpoints are a **company** resource: every
+> operation hangs off the company axis,
+> `/v1/companies/{company}/webhook-endpoints/…`, where `{company}` is the
+> company UUID. Two things this file cites deliberately do **not** take that
+> segment, and a bulk "prefix everything under `/v1/`" rewrite would break both:
+> the **OpenAPI document** (`/v1/openapi.json`), which describes the whole v1
+> surface and is identical for every credential, and the **publishable event
+> catalog** (`GET /v1/event-catalog`), whose enumeration belongs to the product
+> and not to the tenant. Both stay at the root of `v1` by decision, not by
+> oversight.
+
 ## The delivery
 
 Every delivery is a `POST` with a JSON body and these headers:
@@ -157,9 +168,10 @@ order — reconcile against the resource (fetch it by `id`) when order matters.
 
 ## Secret rotation
 
-`POST /v1/webhook_endpoints/{id}/rotate_secret` returns the new secret. For
-**24 hours** (`previous_secret_valid_until` in the response) both secrets are
-valid and every delivery is signed with both. Zero-downtime rollout:
+`POST /v1/companies/{company}/webhook-endpoints/{webhook_endpoint}/rotate-secret`
+returns the new secret. For **24 hours** (`previous_secret_valid_until` in the
+response) both secrets are valid and every delivery is signed with both.
+Zero-downtime rollout:
 
 1. Rotate → get the new secret.
 2. Deploy it to your environment.
@@ -184,12 +196,44 @@ deliveries.
 
 Also useful against a real endpoint:
 
-- `POST /v1/webhook_endpoints/{id}/test_event` — trigger a delivery on demand.
-- `GET /v1/webhook_endpoints/{id}/deliveries` and `…/deliveries/{delivery}` —
-  inspect what was actually sent, and the receiver's response.
-- `POST /v1/webhook_endpoints/{id}/deliveries/{delivery}/replay` — resend one
-  delivery. A replay carries the **same** `Factuarea-Event-Id`, so it is also the
-  cheapest way to prove your deduplication works.
+- `POST /v1/companies/{company}/webhook-endpoints/{webhook_endpoint}/test-event`
+  — trigger a delivery on demand.
+- `GET /v1/companies/{company}/webhook-endpoints/{webhook_endpoint}/deliveries`
+  and `…/deliveries/{delivery}` — inspect what was actually sent, and the
+  receiver's response.
+- `POST /v1/companies/{company}/webhook-endpoints/{webhook_endpoint}/deliveries/{delivery}/replay`
+  — resend one delivery. A replay carries the **same** `Factuarea-Event-Id`, so
+  it is also the cheapest way to prove your deduplication works.
+
+### Copy–paste check that the axis is right
+
+<!-- validation-example: id=webhooks-list-axis — run verbatim against a local API -->
+
+```bash
+curl -sS "$FACTUAREA_API_BASE/v1/companies/$FACTUAREA_COMPANY_ID/webhook-endpoints" \
+  -H "Authorization: Bearer $FACTUAREA_API_KEY"
+```
+
+Expected: **HTTP 200** and the shared cursor envelope —
+`{"data":[…],"has_more":false,"next_cursor":null}` — where every item carries
+`"object": "webhook_endpoint"`. An empty account answers `{"data":[], …}`, which
+is still a pass. `$FACTUAREA_API_BASE` is `https://api.factuarea.com` in
+production and your local base URL when testing; the path after `/v1` is
+identical in both. A `404` means the `/companies/{company}` segment is missing
+or the UUID is not yours; a `401` means the key is wrong.
+
+The root half of the same check, which must **not** grow the segment:
+
+<!-- validation-example: id=event-catalog-root — run verbatim against a local API -->
+
+```bash
+curl -sS "$FACTUAREA_API_BASE/v1/event-catalog" \
+  -H "Authorization: Bearer $FACTUAREA_API_KEY"
+```
+
+Expected: **HTTP 200** and `{"data":[…]}` listing the publishable event types.
+Adding `/companies/{company}` to this one is what turns a working call into a
+`404`.
 
 ## Checklist before you finish
 
@@ -207,5 +251,5 @@ Also useful against a real endpoint:
 - Webhooks guide: <https://docs.factuarea.com/guides/webhooks>
 - Event catalog: <https://docs.factuarea.com/guides/events>
 - SDK verifiers: <https://docs.factuarea.com/sdks#verifying-webhooks>
-- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json> (`webhooks` block)
+- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json> (`webhooks` block) — **root route**, no `/companies/{company}` segment
 - Errors: <https://docs.factuarea.com/guides/errors>

@@ -1,14 +1,27 @@
 ---
 name: factuarea-api
-description: Entry point for building on the Factuarea public API — invoicing, quotes, clients, suppliers, products, VeriFactu (AEAT) and webhooks for Spanish businesses. Use this when the user says they want to integrate with Factuarea, asks where to start, asks whether the API supports something, asks how to authenticate or which environment a key points at, or needs to find what the Factuarea documentation says about a topic. Carries the non-negotiable rules of the contract, how to look anything up locally with `factuarea docs`, and routes the job to the skill that owns it — `factuarea-implement` to write the calls, `factuarea-webhooks` for the receiver endpoint, `factuarea-audit` to review code already written, `factuarea-upgrade` after a contract or SDK change. Once the task is one of those four, hand over instead of answering here. Not for operating an existing Factuarea account through MCP tools — that is the separate `factuarea-mcp` plugin.
+description: Entry point for building on the Factuarea public API — invoicing, quotes, contacts (customers and suppliers are roles of one contact), products, price lists, VeriFactu (AEAT) and webhooks for Spanish businesses. Use this when the user says they want to integrate with Factuarea, asks where to start, asks whether the API supports something, asks how to authenticate or which environment a key points at, or needs to find what the Factuarea documentation says about a topic. Carries the non-negotiable rules of the contract, how to look anything up locally with `factuarea docs`, and routes the job to the skill that owns it — `factuarea-implement` to write the calls, `factuarea-webhooks` for the receiver endpoint, `factuarea-audit` to review code already written, `factuarea-upgrade` after a contract or SDK change. Once the task is one of those four, hand over instead of answering here. Not for operating an existing Factuarea account through MCP tools — that is the separate `factuarea-mcp` plugin.
 ---
 
 # Integrating with Factuarea
 
 Factuarea is a multi-tenant invoicing SaaS for Spanish businesses. Its public
 API (`https://api.factuarea.com/v1`) covers invoices, quotes, pro-formas,
-delivery notes, recurring and purchase invoices, clients, suppliers, products,
-document series, taxes, VeriFactu (AEAT) and webhooks.
+delivery notes, recurring and purchase invoices, contacts, products, price
+lists, document series, taxes, VeriFactu (AEAT) and webhooks.
+
+There is **one** party resource: `contacts`. A customer and a supplier are
+**roles** of the same contact (`roles: ["customer"]`, `roles: ["supplier"]`, and
+a contact may hold both), so one tax id is one contact. The former `clients` and
+`suppliers` resources are **retired**: they are not re-anchored anywhere, they
+are replaced by `contacts` with the right role.
+
+Company-scoped resources hang off the **company axis**,
+`https://api.factuarea.com/v1/companies/{company}/…`, with `{company}` the
+company UUID; account-scoped ones off `…/v1/accounts/{account}/…`. The root
+catalogs and the credential introspection (`/v1/me`) take neither. Never assume
+a resource exists because the domain suggests it should: look its exact
+operations up the same way as any other.
 
 This skill is the **orientation layer**: the rules that hold everywhere, how to
 look anything up, and who takes it from here. It deliberately does not repeat
@@ -51,7 +64,10 @@ fails in production. Each one names the skill that goes deep on it.
 Two sources of truth, both live:
 
 - **The OpenAPI spec** — <https://api.factuarea.com/v1/openapi.json>. Exact
-  operations, paths, request and response schemas, enum values, scopes.
+  operations, paths, request and response schemas, enum values, scopes. This one
+  is a **root route**: the document describes the whole v1 surface and is
+  identical for every credential, so it never takes a `/companies/{company}`
+  segment.
 - **The published docs** — <https://docs.factuarea.com>. Guides, concepts, the
   error catalogue, the SDK pages.
 
@@ -211,7 +227,7 @@ account the code is writing to.
 ## Documentation (source of truth)
 
 - Docs home: <https://docs.factuarea.com>
-- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json>
+- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json> — **root route**: it describes the whole v1 surface, so it takes no `/companies/{company}` segment
 - Guides: [pagination](https://docs.factuarea.com/guides/pagination) ·
   [idempotency](https://docs.factuarea.com/guides/idempotency) ·
   [errors](https://docs.factuarea.com/guides/errors) ·

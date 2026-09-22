@@ -1,6 +1,6 @@
 ---
 name: factuarea-implement
-description: Build a Factuarea API integration in the user's own codebase with an official SDK — `@factuarea/sdk` (TypeScript) or `factuarea/factuarea-php` (PHP). Use this when the user is writing application code that calls Factuarea — wiring the client, resolving the API key, creating or listing invoices/clients/products, paginating, handling errors — and needs the contract invariants right: opaque UUID v7 `id`s, the `data` envelope, cursor pagination, `Idempotency-Key` on writes, and sandbox first. Not for operating the user's own account through MCP tools (that is `factuarea-mcp`); not for the inbound webhook receiver (`factuarea-webhooks`); not for reviewing an integration that is already written (`factuarea-audit`).
+description: Build a Factuarea API integration in the user's own codebase with an official SDK — `@factuarea/sdk` (TypeScript) or `factuarea/factuarea-php` (PHP). Use this when the user is writing application code that calls Factuarea — wiring the client, resolving the API key, creating or listing invoices/contacts/products, paginating, handling errors — and needs the contract invariants right: opaque UUID v7 `id`s, the `data` envelope, cursor pagination, `Idempotency-Key` on writes, and sandbox first. Not for operating the user's own account through MCP tools (that is `factuarea-mcp`); not for the inbound webhook receiver (`factuarea-webhooks`); not for reviewing an integration that is already written (`factuarea-audit`).
 ---
 
 # Building a Factuarea integration
@@ -9,7 +9,9 @@ Factuarea is a multi-tenant invoicing SaaS for Spanish businesses. This skill is
 for writing the code that **calls** its public API from the user's own backend.
 
 This is a summary. The **source of truth is the live OpenAPI spec**
-(<https://api.factuarea.com/v1/openapi.json>) and the **published docs**
+(<https://api.factuarea.com/v1/openapi.json> — a **root route**: it describes the
+whole v1 surface, so it takes no `/companies/{company}` segment) and the
+**published docs**
 (<https://docs.factuarea.com>). When you need an exact operation, field name,
 enum value or scope, read one of those two. **Never invent a resource, a field
 or a scope** — if you cannot find it, say so and stop.
@@ -195,7 +197,7 @@ For the endpoint that **receives** webhook deliveries, use the
 - Docs home: <https://docs.factuarea.com> · SDKs: <https://docs.factuarea.com/sdks>
   ([TypeScript](https://docs.factuarea.com/sdks/typescript) ·
   [PHP](https://docs.factuarea.com/sdks/php))
-- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json>
+- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json> — **root route**: it describes the whole v1 surface, so it takes no `/companies/{company}` segment
 - Authentication: <https://docs.factuarea.com/guides/authentication> ·
   API keys: <https://docs.factuarea.com/guides/api-keys>
 - Idempotency: <https://docs.factuarea.com/guides/idempotency> ·
