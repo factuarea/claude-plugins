@@ -11,7 +11,7 @@
       "name": "factuarea-mcp",
       "source": "./plugins/factuarea-mcp",
       "description": "Connects Claude Code to the Factuarea MCP server: invoicing, quotes, clients, suppliers, products, VeriFactu and webhooks for Spanish businesses, exposed as tools over OAuth or an API key.",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "author": {
         "name": "Factuarea",
         "email": "info@factuarea.com"
@@ -35,7 +35,7 @@
       "name": "factuarea-api",
       "source": "./plugins/factuarea-api",
       "description": "Five skills for developers building on the Factuarea public API: an entry-point guide (golden rules, authentication, local documentation search, recipes) that routes to setup with the official TypeScript and PHP SDKs, webhook receivers with signature verification, auditing an integration that is already written, and realigning it after a contract or SDK change. Declares no MCP server: no OAuth, no tools loaded at startup.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "Factuarea",
         "email": "info@factuarea.com"
