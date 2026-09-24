@@ -62,10 +62,12 @@ guide those calls; you can also invoke it manually:
 
 - **Connecting** via OAuth (consent with company + environment selection) or an
   API key header.
-- **Channel policy** — an API key reaches the full **223 tools**; OAuth uses a
-  curated **215**, never granting `verifactu:write` or the GDPR signature-forget
-  operation to third-party apps.
-- **15 tool domains** and their scopes, plus how plan/module and feature flags
+- **Channel policy** — an API key reaches the full catalog; OAuth uses a curated
+  subset, and never grants the owner-only operations (VeriFactu writes, GDPR
+  erasure, payments and stores, managed companies, API keys, privileged
+  workforce writes) to third-party apps. Live counts:
+  [MCP tools](https://docs.factuarea.com/mcp/tools).
+- **29 tool domains** and their scopes, plus how plan/module and feature flags
   further narrow what's listed.
 - **Identity** — opaque `id` (UUID v7), foreign keys as `*_id`.
 - **Cursor pagination** — `{ data, has_more, next_cursor }`, no page numbers.
@@ -80,7 +82,8 @@ guide those calls; you can also invoke it manually:
   scopes · errors · test-mode
 - Docs home: <https://docs.factuarea.com>
 - Dashboard / API keys: <https://app.factuarea.com/settings/developers/api-keys>
-- Beta access: `info@factuarea.com`
+- Contact: `info@factuarea.com`
+- MCP server repository: <https://github.com/factuarea/factuarea-mcp>
 
 ## License
 

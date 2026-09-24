@@ -14,7 +14,7 @@ This is a summary. The **source of truth is the live OpenAPI spec**
 enum value or scope, read one of those two. **Never invent a resource, a field
 or a scope** — if you cannot find it, say so and stop.
 
-The API is in **private beta**: companies must be allowlisted before keys work.
+The public API is **included in every Factuarea plan**, trial included.
 
 ## Pick the SDK, don't hand-roll HTTP
 
@@ -203,4 +203,4 @@ For the endpoint that **receives** webhook deliveries, use the
   Rate limits: <https://docs.factuarea.com/guides/rate-limits>
 - Errors: <https://docs.factuarea.com/guides/errors>
 - Dashboard / API keys: <https://app.factuarea.com/settings/developers/api-keys>
-- Support: <https://docs.factuarea.com/support> · beta access: `info@factuarea.com`
+- Support: <https://docs.factuarea.com/support> · contact: `info@factuarea.com`

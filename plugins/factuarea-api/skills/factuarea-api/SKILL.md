@@ -15,8 +15,8 @@ look anything up, and who takes it from here. It deliberately does not repeat
 what the four specialised skills cover in depth — when the task has a shape,
 hand it over.
 
-The API is in **private beta**: a company has to be allowlisted before its keys
-work. Request access at `info@factuarea.com`.
+The public API is **included in every Factuarea plan**, trial included: any
+company can create keys in the dashboard.
 
 ## The golden rules
 
@@ -220,4 +220,4 @@ account the code is writing to.
 - SDKs: <https://docs.factuarea.com/sdks>
 - CLI: <https://docs.factuarea.com/cli>
 - API keys: <https://app.factuarea.com/settings/developers/api-keys>
-- Support: <https://docs.factuarea.com/support> · beta access: `info@factuarea.com`
+- Support: <https://docs.factuarea.com/support> · contact: `info@factuarea.com`
