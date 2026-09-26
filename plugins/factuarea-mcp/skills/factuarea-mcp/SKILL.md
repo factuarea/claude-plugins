@@ -122,11 +122,12 @@ or the REST API; there is no MCP tool to upload them.
 
 1. **Find** — `search_purchase_scans` (by status, source, dates),
    `get_purchase_scan_stats` for the counters, `list_purchase_scan_emails` for
-   what the mailbox received.
+   what the mailbox received. Search responses include `facets`; use those counts rather than inferring totals from one cursor page.
 2. **Inspect** — `get_purchase_scan`: extraction with evidence, issues,
    `available_actions` and the current `version`. Every mutation below sends
    that version as `expected_version`; a stale one fails, so re-read and ask
    again.
+   `attempts_total` counts all attempts even when the detail only includes recent ones.
 3. **Review** — `save_purchase_scan_review` with the user's corrections;
    `retry_purchase_scan` starts or re-queues a recoverable scan.
 4. **Finish** — one of:
@@ -139,7 +140,7 @@ or the REST API; there is no MCP tool to upload them.
 `resolve_purchase_scan_duplicate` or `archive_purchase_scan`**, stating which
 scan and what will happen. A `429` with code `ocr_company_quota_exceeded` means
 the monthly quota is used up and is not recoverable before `Retry-After`: do
-not retry in a loop.
+not retry in a loop. Empresario shares 100 scans/month and 10/day across the company; Enterprise is unlimited. If a saved scan has `deferred_reason=ocr_daily_quota_reached` and `deferred_until`, the original is already safe and processing resumes automatically at that time. Explain the daily wait, preserve the scan ID and do not upload it again or spend retries while deferred. The mailbox always requires human review.
 
 State changes are **discrete tools**, not a generic `change_status`: e.g.
 `mark_invoice_as_paid`, `send_invoice`, `void_invoice`, `accept_quote`,

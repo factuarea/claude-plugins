@@ -202,6 +202,8 @@ operations:
   document-reading quota is used up. It carries `Retry-After` (seconds until
   the quota renews) and it is **not recoverable** before then — the scan's
   `last_error` reports `recoverable: false`. Wait; do not retry in a loop.
+- Empresario shares **100 scans/month and 10/day** across all company users and channels; Enterprise is unlimited. A persisted scan with `deferred_reason=ocr_daily_quota_reached` and `deferred_until` is queued for automatic resumption at the daily reset. Keep its ID and do not upload it again or retry while deferred.
+- List responses publish `facets`. Detail responses publish `attempts_total` separately from the recent attempts returned; a truncated attempt list is not the total.
 - **`403` `module_upgrade_required`** means the plan does not include the
   scanner. No retry fixes it; the plan has to change.
 - With a **`fact_test_`** key the extraction is **simulated** and deterministic:
