@@ -1,6 +1,6 @@
 ---
 name: factuarea-mcp
-description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, recurring & purchase invoices, clients, suppliers, products, document series, taxes, VeriFactu (AEAT), webhooks and a business dashboard for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their accounting data — search/create/send invoices, manage clients, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, the error envelope, and test (sandbox) mode.
+description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, recurring invoices & expenses, clients, suppliers, products, document series, taxes, VeriFactu (AEAT), webhooks and a business dashboard for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their accounting data — search/create/send invoices, manage clients, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, the error envelope, and test (sandbox) mode.
 ---
 
 # Factuarea MCP server
@@ -83,6 +83,16 @@ Beyond the channel, the tools you see in `tools/list` are further narrowed by:
 So an OAuth session with read-only scopes on an emprendedor plan will list far
 fewer than 215 tools — that's expected, not an error.
 
+## Product terminology and stable contracts
+
+The product calls purchases **Expenses** (ES: Gastos; CA: Despeses) and sales
+**Invoices** (ES: Facturas; CA: Factures). Recognize the former names “purchase
+invoices” and “sales invoices” in user requests, but use the current names in
+responses. A supplier invoice is still a fiscal supporting document for an expense.
+Resource names such as `purchase_invoices`, scopes, event IDs, tool names, SDK
+methods and routes stay unchanged. Never invent an `expenses` resource or rename
+a tool to match a display label.
+
 ## Tool domains (15)
 
 Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_client`,
@@ -97,7 +107,7 @@ Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_client`,
 | Quotes | 16 | `quotes:read` · `quotes:write` · `quotes:send` · `quotes:transition` · `quotes:delete` |
 | Pro-formas | 16 | `proformas:read` · `proformas:write` · `proformas:send` · `proformas:transition` · `proformas:delete` |
 | Taxes | 15 | `taxes:read` · `taxes:write` |
-| Purchase invoices | 14 | `purchase_invoices:read` · `purchase_invoices:write` · `purchase_invoices:transition` · `purchase_invoices:delete` |
+| Expenses | 14 | `purchase_invoices:read` · `purchase_invoices:write` · `purchase_invoices:transition` · `purchase_invoices:delete` |
 | Recurring invoices | 14 | `recurring_invoices:read` · `recurring_invoices:write` · `recurring_invoices:transition` · `recurring_invoices:delete` |
 | Webhooks | 12 | `webhooks:read` · `webhooks:write` · `webhooks:delete` · `events:read` |
 | Series | 11 | `series:read` · `series:write` (series are immutable: archive, never delete) |
@@ -115,8 +125,8 @@ session, and a tool missing from this table is not missing from the server.
 
 ### Purchase scanner flow
 
-The purchase scanner turns supplier invoices and receipts into draft purchase
-invoices. Its tools live under the `purchase_invoices:*` scopes and need a plan
+The purchase scanner turns supplier invoices and receipts into draft
+expenses. Its tools live under the `purchase_invoices:*` scopes and need a plan
 that includes the scanner. Documents arrive from the app, the scanner mailbox
 or the REST API; there is no MCP tool to upload them.
 
@@ -131,8 +141,8 @@ or the REST API; there is no MCP tool to upload them.
 3. **Review** — `save_purchase_scan_review` with the user's corrections;
    `retry_purchase_scan` starts or re-queues a recoverable scan.
 4. **Finish** — one of:
-   - `convert_purchase_scan` creates the draft purchase invoice;
-   - `resolve_purchase_scan_duplicate` links it to an existing purchase invoice
+   - `convert_purchase_scan` creates the draft expense;
+   - `resolve_purchase_scan_duplicate` links it to an existing expense
      (`link_existing`) or archives it (`archive`);
    - `archive_purchase_scan` archives it (`restore_purchase_scan` undoes it).
 

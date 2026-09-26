@@ -3,7 +3,7 @@
 Connects [Claude Code](https://claude.com/claude-code) to the
 **[Factuarea](https://factuarea.com) MCP server** — the Factuarea public API
 exposed as tools for invoicing, quotes, pro-formas, delivery notes, recurring &
-purchase invoices, clients, suppliers, products, document series, taxes,
+expenses, clients, suppliers, products, document series, taxes,
 VeriFactu (AEAT), webhooks and a business dashboard for Spanish companies.
 
 The plugin ships two things:
