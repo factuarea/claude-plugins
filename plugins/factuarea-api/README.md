@@ -100,7 +100,7 @@ They load by context; you can also invoke one by name, e.g.
   [PHP](https://docs.factuarea.com/sdks/php)
 - CLI: <https://docs.factuarea.com/cli>
 - Dashboard / API keys: <https://app.factuarea.com/settings/developers/api-keys>
-- Support: <https://docs.factuarea.com/support> · beta access: `info@factuarea.com`
+- Support: <https://docs.factuarea.com/support> · contact: `info@factuarea.com`
 
 ## License
 

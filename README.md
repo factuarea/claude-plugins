@@ -68,8 +68,9 @@ Its skill covers:
 - **Connecting** via OAuth (consent with company + environment selection) or an
   API-key header.
 - **Channel policy** — an API key reaches the whole catalog; OAuth uses a
-  curated subset, never granting `verifactu:write` or the GDPR
-  signature-forget operation to third-party apps. Live counts per domain:
+  curated subset and never grants the owner-only operations (VeriFactu writes,
+  GDPR erasure, payments and stores, managed companies, API keys, privileged
+  workforce writes) to third-party apps. Live counts per domain:
   [MCP tools](https://docs.factuarea.com/mcp/tools).
 - **Tool domains** and their scopes, plus how plan/module and feature flags
   further narrow what's listed.
@@ -141,6 +142,8 @@ Its skill covers:
 
 - MCP docs: <https://docs.factuarea.com/mcp> — connect · authentication · tools ·
   scopes · errors · test-mode
+- MCP server repository (npm package, registry manifest, issues):
+  <https://github.com/factuarea/factuarea-mcp>
 - Docs home: <https://docs.factuarea.com>
 - Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json>
 - SDKs: <https://docs.factuarea.com/sdks> —
@@ -148,7 +151,7 @@ Its skill covers:
   [PHP](https://docs.factuarea.com/sdks/php)
 - CLI: <https://docs.factuarea.com/cli>
 - Dashboard / API keys: <https://app.factuarea.com/settings/developers/api-keys>
-- Support: <https://docs.factuarea.com/support> · beta access: `info@factuarea.com`
+- Support: <https://docs.factuarea.com/support> · contact: `info@factuarea.com`
 
 ## License
 
