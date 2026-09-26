@@ -133,6 +133,39 @@ Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_contact`,
 PDF downloads and payment receipts use the transversal `pdfs:read` scope;
 activity/event logs use `events:read`.
 
+The counts above are a snapshot and the catalog grows. **Discover the tools at
+runtime with `tools/list`**: it is the authoritative list for the current
+session, and a tool missing from this table is not missing from the server.
+
+### Purchase scanner flow
+
+The purchase scanner turns supplier invoices and receipts into draft purchase
+invoices. Its tools live under the `purchase_invoices:*` scopes and need a plan
+that includes the scanner. Documents arrive from the app, the scanner mailbox
+or the REST API; there is no MCP tool to upload them.
+
+1. **Find** — `search_purchase_scans` (by status, source, dates),
+   `get_purchase_scan_stats` for the counters, `list_purchase_scan_emails` for
+   what the mailbox received. Search responses include `facets`; use those counts rather than inferring totals from one cursor page.
+2. **Inspect** — `get_purchase_scan`: extraction with evidence, issues,
+   `available_actions` and the current `version`. Every mutation below sends
+   that version as `expected_version`; a stale one fails, so re-read and ask
+   again.
+   `attempts_total` counts all attempts even when the detail only includes recent ones.
+3. **Review** — `save_purchase_scan_review` with the user's corrections;
+   `retry_purchase_scan` starts or re-queues a recoverable scan.
+4. **Finish** — one of:
+   - `convert_purchase_scan` creates the draft purchase invoice;
+   - `resolve_purchase_scan_duplicate` links it to an existing purchase invoice
+     (`link_existing`) or archives it (`archive`);
+   - `archive_purchase_scan` archives it (`restore_purchase_scan` undoes it).
+
+**Always ask the user to confirm before calling `convert_purchase_scan`,
+`resolve_purchase_scan_duplicate` or `archive_purchase_scan`**, stating which
+scan and what will happen. A `429` with code `ocr_company_quota_exceeded` means
+the monthly quota is used up and is not recoverable before `Retry-After`: do
+not retry in a loop. Empresario shares 100 scans/month and 10/day across the company; Enterprise is unlimited. If a saved scan has `deferred_reason=ocr_daily_quota_reached` and `deferred_until`, the original is already safe and processing resumes automatically at that time. Explain the daily wait, preserve the scan ID and do not upload it again or spend retries while deferred. The mailbox always requires human review.
+
 State changes are **discrete tools**, not a generic `change_status`: e.g.
 `mark_invoice_as_paid`, `send_invoice`, `void_invoice`, `accept_quote`,
 `convert_quote`, `sign_delivery_note`, `pause_recurring_invoice`. Pick the tool
