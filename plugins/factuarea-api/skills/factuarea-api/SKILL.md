@@ -7,7 +7,7 @@ description: Entry point for building on the Factuarea public API — invoicing,
 
 Factuarea is a multi-tenant invoicing SaaS for Spanish businesses. Its public
 API (`https://api.factuarea.com/v1`) covers invoices, quotes, pro-formas,
-delivery notes, recurring and purchase invoices, the purchase scanner
+delivery notes, recurring invoices and expenses, the purchase scanner
 (`purchase_scans`), clients, suppliers, products, document series, taxes,
 VeriFactu (AEAT) and webhooks.
 
@@ -18,6 +18,16 @@ hand it over.
 
 The public API is **included in every Factuarea plan**, trial included: any
 company can create keys in the dashboard.
+
+## Product terminology and stable contracts
+
+The product calls purchases **Expenses** (ES: Gastos; CA: Despeses) and sales
+**Invoices** (ES: Facturas; CA: Factures). Recognize the former names “purchase
+invoices” and “sales invoices” in user requests, but use the current names in
+responses. A supplier invoice is still a fiscal supporting document for an expense.
+Resource names such as `purchase_invoices`, scopes, event IDs, tool names, SDK
+methods and routes stay unchanged. Never invent an `expenses` resource or rename
+a tool to match a display label.
 
 ## The golden rules
 
@@ -191,7 +201,7 @@ operations:
 | --- | --- |
 | Ingest | `POST /purchase_scans` — `multipart/form-data`, field `files[]`: up to 20 PDF, JPEG or PNG files, **20 MiB per file and 100 MiB per batch**; answers `202` with `accepted[]` and `rejected[]` |
 | Read | `GET /purchase_scans` (cursor, filters by `status`, `source`, dates) · `GET /purchase_scans/{id}` (evidence-first extraction, issues, `available_actions`, current `version`) · `GET /purchase_scans/{id}/source` (download the original) · `GET /purchase_scans/stats` · `GET /purchase_scan_emails` (mailbox) · `GET /purchase_invoices/expense_categories` |
-| Work the scan | `PUT /purchase_scans/{id}/review` · `POST /purchase_scans/{id}/retry` · `POST /purchase_scans/{id}/duplicate_resolution` (`link_existing` or `archive`) · `POST /purchase_scans/{id}/convert` (one draft purchase invoice) |
+| Work the scan | `PUT /purchase_scans/{id}/review` · `POST /purchase_scans/{id}/retry` · `POST /purchase_scans/{id}/duplicate_resolution` (`link_existing` or `archive`) · `POST /purchase_scans/{id}/convert` (one draft expense) |
 | Archive | `DELETE /purchase_scans/{id}` · `POST /purchase_scans/{id}/restore` |
 
 - Send an **`Idempotency-Key`** on the upload and on every write; a replay
