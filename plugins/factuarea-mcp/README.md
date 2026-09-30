@@ -4,7 +4,8 @@ Connects [Claude Code](https://claude.com/claude-code) to the
 **[Factuarea](https://factuarea.com) MCP server** — the Factuarea public API
 exposed as tools for invoicing, quotes, pro-formas, delivery notes, recurring &
 expenses, clients, suppliers, products, document series, taxes,
-VeriFactu (AEAT), webhooks and a business dashboard for Spanish companies.
+VeriFactu (AEAT), tasks and projects, webhooks and a business dashboard for
+Spanish companies.
 
 The plugin ships two things:
 
@@ -51,8 +52,9 @@ Use a `fact_test_` key for the isolated sandbox (external effects off).
 
 Once connected, just ask Claude to work with your Factuarea data — "list this
 quarter's unpaid invoices", "create a draft invoice for Acme S.L.", "check the
-VeriFactu chain", "add a webhook endpoint". The skill loads automatically to
-guide those calls; you can also invoke it manually:
+VeriFactu chain", "add a webhook endpoint", "list the tasks assigned to me this
+week". The skill loads automatically to guide those calls; you can also invoke it
+manually:
 
 ```text
 /factuarea-mcp:factuarea-mcp
@@ -67,8 +69,9 @@ guide those calls; you can also invoke it manually:
   erasure, payments and stores, managed companies, API keys, privileged
   workforce writes) to third-party apps. Live counts:
   [MCP tools](https://docs.factuarea.com/mcp/tools).
-- **29 tool domains** and their scopes, plus how plan/module and feature flags
-  further narrow what's listed.
+- **35 tool domains** and their scopes — tasks and projects (deleting them is
+  API-key only), users, notifications and the agenda among them — plus how
+  plan/module and feature flags further narrow what's listed.
 - **Identity** — opaque `id` (UUID v7), foreign keys as `*_id`.
 - **Cursor pagination** — `{ data, has_more, next_cursor }`, no page numbers.
 - **Errors** — `insufficient_scope`, `addon_not_active`, `422` business-rule

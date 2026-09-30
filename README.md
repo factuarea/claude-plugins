@@ -9,7 +9,7 @@ and webhooks).
 
 | Plugin | For | What it does |
 | --- | --- | --- |
-| [`factuarea-mcp`](./plugins/factuarea-mcp) | **Running your business** | Connects Claude Code to the **Factuarea MCP server** (`https://mcp.factuarea.com`) so Claude can call Factuarea tools directly — search/create/send invoices, manage clients, check VeriFactu, configure webhooks. Authenticate via OAuth or an API-key header. One skill, on using those tools well |
+| [`factuarea-mcp`](./plugins/factuarea-mcp) | **Running your business** | Connects Claude Code to the **Factuarea MCP server** (`https://mcp.factuarea.com`) so Claude can call Factuarea tools directly — search/create/send invoices, manage clients, follow tasks and projects, check VeriFactu, configure webhooks. Authenticate via OAuth or an API-key header. One skill, on using those tools well |
 | [`factuarea-api`](./plugins/factuarea-api) | **Building the integration** | Five developer skills for the code you write in your own repository: where to start, the official TypeScript and PHP SDKs, webhook receivers, auditing an existing integration, and realigning it after a contract or SDK change. **Declares no MCP server** |
 
 They are **complementary, not alternatives**.

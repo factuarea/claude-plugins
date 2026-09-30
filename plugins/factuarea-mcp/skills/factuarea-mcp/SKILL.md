@@ -1,6 +1,6 @@
 ---
 name: factuarea-mcp
-description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, recurring invoices & expenses, contacts (customers and suppliers), products, price lists, document series, taxes, VeriFactu (AEAT), FacturaE, tax reports, time tracking, automations and webhooks for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their business data — search/create/send invoices, manage contacts, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, the error envelope, and test (sandbox) mode.
+description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, recurring invoices & expenses, contacts (customers and suppliers), products, price lists, document series, taxes, VeriFactu (AEAT), FacturaE, tax reports, time tracking, tasks and projects, automations and webhooks for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their business data — search/create/send invoices, manage contacts, follow tasks and projects, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, the error envelope, and test (sandbox) mode.
 ---
 
 # Factuarea MCP server
@@ -78,8 +78,13 @@ maximum reach**:
     **account writes** (`account:write`).
   - **Privileged workforce writes** (`time_entries:write`, `absences:write`,
     `absences:transition`, `work_schedules:write`).
+  - **Deleting tasks and projects** (`tasks:delete`, `projects:delete`) — the
+    delete is irreversible: it takes comments, attachments and logged time
+    with it.
   VeriFactu **reads** (`verifactu:read`) and workforce reads remain available to
-  OAuth apps. Live counts per channel and domain:
+  OAuth apps, as do reading and writing tasks and projects (the writes are shown
+  with a warning and not pre-checked), the member directory (`users:read`) and
+  the user's own notifications. Live counts per channel and domain:
   <https://docs.factuarea.com/mcp/tools>.
 
 Beyond the channel, the tools you see in `tools/list` are further narrowed by:
@@ -102,10 +107,10 @@ Resource names such as `purchase_invoices`, scopes, event IDs, tool names, SDK
 methods and routes stay unchanged. Never invent an `expenses` resource or rename
 a tool to match a display label.
 
-## Tool domains (29)
+## Tool domains (35)
 
 Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_contact`,
-`mark_invoice_as_paid`). The catalog covers 29 domains; † marks owner-only
+`mark_invoice_as_paid`). The catalog covers 35 domains; † marks owner-only
 (API key) scopes:
 
 | Domain | Scopes |
@@ -139,6 +144,11 @@ Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_contact`,
 | Absences | `absences:read` · `absences:write` † · `absences:transition` † |
 | Presence | `presence:read` |
 | Holidays | `holidays:read` |
+| Projects | `projects:read` · `projects:write` · `projects:delete` † (`invoice_project_time` also needs `invoices:write`) |
+| Tasks | `tasks:read` · `tasks:write` · `tasks:delete` † |
+| Users | `users:read` |
+| Notifications | `notifications:read` · `notifications:write` |
+| Agenda | `tasks:read` (each extra layer, such as invoice due dates, also needs its own read scope) |
 
 PDF downloads and payment receipts use the transversal `pdfs:read` scope;
 activity/event logs use `events:read`.
