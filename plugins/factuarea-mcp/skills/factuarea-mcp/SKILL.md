@@ -174,7 +174,7 @@ or the REST API; there is no MCP tool to upload them.
 `resolve_purchase_scan_duplicate` or `archive_purchase_scan`**, stating which
 scan and what will happen. A `429` with code `ocr_company_quota_exceeded` means
 the monthly quota is used up and is not recoverable before `Retry-After`: do
-not retry in a loop. Empresario shares 100 scans/month and 10/day across the company; Enterprise is unlimited. If a saved scan has `deferred_reason=ocr_daily_quota_reached` and `deferred_until`, the original is already safe and processing resumes automatically at that time. Explain the daily wait, preserve the scan ID and do not upload it again or spend retries while deferred. The mailbox always requires human review.
+not retry in a loop. Negocio includes 100 scans/month and 10/day; Integral includes 400 scans/month and 40/day. Quotas are shared across all company users and channels; Enterprise quotas are per contract. If a saved scan has `deferred_reason=ocr_daily_quota_reached` and `deferred_until`, the original is already safe and processing resumes automatically at that time. Explain the daily wait, preserve the scan ID and do not upload it again or spend retries while deferred. The mailbox always requires human review.
 
 State changes are **discrete tools**, not a generic `change_status`: e.g.
 `mark_invoice_as_paid`, `send_invoice`, `void_invoice`, `accept_quote`,
