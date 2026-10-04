@@ -124,7 +124,7 @@ Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_contact`,
 | Delivery notes | `delivery_notes:read` · `delivery_notes:write` · `delivery_notes:transition` · `delivery_notes:delete` · `delivery_notes:gdpr_forget` † |
 | Expenses | `purchase_invoices:read` · `purchase_invoices:write` · `purchase_invoices:transition` · `purchase_invoices:delete` |
 | Recurring invoices | `recurring_invoices:read` · `recurring_invoices:write` · `recurring_invoices:transition` · `recurring_invoices:delete` |
-| Series | `series:read` · `series:write` (series are immutable: archive, never delete) |
+| Series | `series:read` · `series:write` (`update_series` edits a series under the fiscal guards of the numbering: the code and mask are fixed once documents exist, the purpose once it has an invoice, and all numbering fields lock when the AEAT accepts a record; a series is never deleted, archive it) |
 | Taxes | `taxes:read` · `taxes:write` |
 | VeriFactu | `verifactu:read` · `verifactu:write` † |
 | FacturaE (FACe) | `facturae:read` · `facturae:write` |
