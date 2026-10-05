@@ -63,13 +63,16 @@ guide those calls; you can also invoke it manually:
 
 - **Connecting** via OAuth (consent with company + environment selection) or an
   API key header.
-- **Channel policy** — an API key reaches the full **470 tools**; OAuth reaches
-  **370**, because **100** sit behind scopes the consent catalog never grants —
-  account, membership and credential administration, `verifactu:write`,
+- **Channel policy** — an API key with scope `*` reaches **487 tools**; OAuth reaches
+  **366**, because **121** sit behind scopes the consent catalog never grants —
+  account, membership, NIF-transfer and credential administration, account
+  webhooks and request logs, `verifactu:write`,
   connected stores, workforce actions taken on someone's behalf, and
   irreversible operations such as `delivery_notes:gdpr_forget` or
-  `automations:delete`.
-- **32 tool domains** with their tool counts, OAuth reach and scopes, plus how
+  `automations:delete`. Managed-account tools need the privileged scope
+  `accounts:*`, which `*` does not cover and OAuth never grants; bulk import of
+  managed accounts has no MCP tool.
+- **33 tool domains** with their tool counts, OAuth reach and scopes, plus how
   plan/module and feature flags further narrow what's listed.
 - **Identity** — opaque `id` (UUID v7), foreign keys as `*_id`.
 - **Cursor pagination** — `{ data, has_more, next_cursor }`, no page numbers.

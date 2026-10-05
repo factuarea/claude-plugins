@@ -16,7 +16,9 @@ Don't invent event types or payload fields — look them up.
 > **Path shape in `v1`.** Webhook endpoints are a **company** resource: every
 > operation hangs off the company axis,
 > `/v1/companies/{company}/webhook-endpoints/…`, where `{company}` is the
-> company UUID. Two things this file cites deliberately do **not** take that
+> company UUID. (The account has its own endpoints, under
+> `/v1/accounts/{account}/webhooks/…`: see [Account webhooks](#account-webhooks).)
+> Two things this file cites deliberately do **not** take that
 > segment, and a bulk "prefix everything under `/v1/`" rewrite would break both:
 > the **OpenAPI document** (`/v1/openapi.json`), which describes the whole v1
 > surface and is identical for every credential, and the **publishable event
@@ -148,6 +150,12 @@ deliveries of the same event can't both pass the existence check.
 Do **not** dedup on `Factuarea-Delivery-Id` — it changes on every attempt, so it
 never matches and the dedup silently does nothing.
 
+The id is the same **across both axes**. An event of a tax ID delivered to a
+company endpoint and to an account endpoint carries the **same** `id` (and the
+same `Factuarea-Event-Id`) in both envelopes. If one receiver serves both, a
+single table of processed ids covers it; two tables would process the event
+twice.
+
 ## Acknowledge fast, work later
 
 Respond `2xx` as soon as the delivery is verified and recorded. Any 2xx counts
@@ -235,13 +243,62 @@ Expected: **HTTP 200** and `{"data":[…]}` listing the publishable event types.
 Adding `/companies/{company}` to this one is what turns a working call into a
 `404`.
 
+## Account webhooks [#account-webhooks]
+
+An account can register its own endpoints, to hear about the account itself
+(members, access, managed accounts, NIF changes, imports) and about the events of
+its tax IDs in one place. They live under `/v1/accounts/{account}/webhooks`
+(`GET`, `POST`; then `GET`, `PATCH`, `DELETE` on `…/{webhook}`), with
+`POST …/{webhook}/secret` to rotate, `POST …/{webhook}/test` to send a test and
+`…/{webhook}/deliveries` (list, show, `POST …/{delivery}/retry`) to inspect. The
+request logs of the account are `GET /v1/accounts/{account}/request-logs` and
+`…/{request_id}`.
+
+Registering takes `url` (HTTPS), `enabled_events` (company event types and
+`account.*` names, at least one) and, optionally, `account_relationship`:
+`own` (the tax IDs of your account), `managed` (the accounts your account
+manages) or `all`, the default. The `whsec_…` secret comes back once, on creation
+or on rotation. **Writes need a `fact_live_` key**, issued by an owner or admin
+and whose tax ID scope covers every tax ID of the account: a `fact_test_` key can
+only read.
+
+**The envelope** is the company envelope plus three fields that are always
+present:
+
+| Field | Value |
+| --- | --- |
+| `account` | `{ "id": "<account uuid>" }` — the account of the endpoint |
+| `account_relationship` | `own` or `managed` — how the event relates to your account. An event never carries `all`; that is only a filter on the endpoint |
+| `company_id` | UUID of the tax ID the event is about, or `null` in an `account.*` event that is not about a tax ID |
+
+**The header** `Factuarea-Account-Relationship` (`own` or `managed`) arrives next
+to `Factuarea-Event-Id`, `Factuarea-Event-Type`, `Factuarea-Delivery-Id` and
+`Idempotency-Key`. Signature, timestamp tolerance and rotation grace are exactly
+the ones above: the same `Factuarea-Signature`, the same verifier, the same raw
+body. Nothing in the receiver changes except what you do with the three new
+fields — route by `company_id`, branch on `account_relationship`.
+
+**The names.** There are 15 `account.*` event types and **they are not in
+`GET /v1/event-catalog`**, which lists company events only. Take them from the
+`AccountEventType` schema of the live spec:
+`account.member_added`, `account.member_removed`, `account.member_role_changed`,
+`account.owner_transferred`, `account.member_grant_changed`,
+`account.access_granted`, `account.access_revoked`,
+`account.access_level_changed`, `account.managed_account_provisioned`,
+`account.managed_account_claimed`, `account.management_ended`,
+`account.nif_added`, `account.nif_transferred`, `account.nif_archived` and
+`account.import_completed`. Do not build the list from the catalog route.
+
 ## Checklist before you finish
 
 - [ ] Signature verified **first**, over the **raw** body, **constant time**.
 - [ ] Every `v1` in the header is considered; a rotation doesn't break it.
 - [ ] Timestamp tolerance enforced (±300 s).
 - [ ] Failed verification returns `400`, not `200`.
-- [ ] Dedup on `Factuarea-Event-Id` with a unique constraint.
+- [ ] Dedup on `Factuarea-Event-Id` with a unique constraint, shared by the
+      company and the account endpoint if one receiver serves both.
+- [ ] Account endpoint: `account_relationship` and `company_id` read from the
+      envelope, `account.*` names taken from the spec, not from `/v1/event-catalog`.
 - [ ] `2xx` returned before any heavy work; the work is queued.
 - [ ] Handler tolerates redelivery and out-of-order events.
 - [ ] The signing secret comes from the environment, never from source.
@@ -250,6 +307,8 @@ Adding `/companies/{company}` to this one is what turns a working call into a
 
 - Webhooks guide: <https://docs.factuarea.com/guides/webhooks>
 - Event catalog: <https://docs.factuarea.com/guides/events>
+- Account webhooks: <https://docs.factuarea.com/guides/account-webhooks>
+- Deduplication: <https://docs.factuarea.com/guides/webhook-deduplication>
 - SDK verifiers: <https://docs.factuarea.com/sdks#verifying-webhooks>
 - Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json> (`webhooks` block) — **root route**, no `/companies/{company}` segment
 - Errors: <https://docs.factuarea.com/guides/errors>

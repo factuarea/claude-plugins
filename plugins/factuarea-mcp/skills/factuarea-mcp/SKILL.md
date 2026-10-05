@@ -60,19 +60,30 @@ only the prefix changes the environment.
 The catalog is the same set of tools, but the two channels resolve a **different
 maximum reach**:
 
-- **API key (owner's own key, scope `*`)** → the full catalog, **470 tools**.
-  The owner is acting on their own company, so the key can cover everything,
-  including the privileged operations below.
-- **OAuth (third-party app, curated scopes)** → **370 tools**. The remaining
-  **100** are unreachable by consent: the OAuth scope catalog has no dotted
+- **API key (owner's own key, scope `*`)** → the whole catalog a `*` holder
+  sees, **487 tools**. The owner is acting on their own account, so the key can
+  cover everything, including the privileged operations below. Nine more tools
+  (managed accounts: provisioning, plan changes, ending a management) are
+  **not** in that figure: they need the privileged scope `accounts:read` /
+  `accounts:write`, which `*` does **not** cover, so they only appear for a key
+  that carries `accounts:*`, granted by a superadmin. OAuth never grants it.
+- **OAuth (third-party app, curated scopes)** → **366 tools**. The remaining
+  **121** are unreachable by consent: the OAuth scope catalog has no dotted
   scope that translates to them, so a third-party app can never reach them on
   the user's behalf. They fall into five groups:
   - **Account and credential administration** — `account:write`, `account:owner`,
-    `claim_tokens:read`, `claim_tokens:write`, `invitations:read`,
+    `nif_transfers:read`, `nif_transfers:write`, `invitations:read`,
     `invitations:write`, `members:read`, `members:write`, `companies:read`,
-    `companies:write`, `companies:delete`, `developers:read`. Who holds the keys
-    to the account, who sits in it and who owns it is decided by the owner from
-    their own dashboard or with their own key, never by a delegated app.
+    `companies:write`, `companies:delete`, `developers:read`, plus the
+    privileged `accounts:read` / `accounts:write`. Who holds the keys to the
+    account, who sits in it, who owns it and which NIF moves to another account
+    is decided by the owner from their own dashboard or with their own key,
+    never by a delegated app.
+    Account webhooks (`webhooks:*` at account level) and account request logs
+    (`developers:read`) are the same: **API key only**.
+    Bulk import of managed accounts has **no MCP tool**, by design (it is
+    privileged and uploads a file, which the MCP transport does not carry): use
+    the REST API.
   - **VeriFactu writes** — `verifactu:write`: creating/retrying VeriFactu
     records, editing VeriFactu settings, and uploading/activating/revoking FNMT
     certificates. VeriFactu **reads** (`verifactu:read`) stay available.
@@ -95,17 +106,19 @@ Beyond the channel, the tools you see in `tools/list` are further narrowed by:
 - **feature flags**.
 
 So an OAuth session with read-only scopes on an emprendedor plan will list far
-fewer than 370 tools — that's expected, not an error.
+fewer than 366 tools — that's expected, not an error.
 
-## Tool domains (32)
+## Tool domains (33)
 
 Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_contact`,
 `mark_invoice_as_paid`). **Tools** is what an API key with scope `*` sees;
 **OAuth** is what a consent grant can reach (`all` when the whole domain is
 reachable).
 
-The catalog is **470 tools** across **32 domains**, of which **370** are
-reachable by an OAuth consent grant and **100** are API-key only.
+The catalog is **487 tools** across **33 domains**, of which **366** are
+reachable by an OAuth consent grant and **121** are API-key only. Privileged
+`accounts:*` tools (9, managed accounts) are outside these figures: only a
+credential with that scope sees them.
 
 | Domain | Tools | OAuth | Scopes |
 | --- | ---: | ---: | --- |
@@ -122,32 +135,33 @@ reachable by an OAuth consent grant and **100** are API-key only.
 | Automations | 18 | 17 | `automation_runs:read` · `automations:read` · `automations:write` · `automations:delete` *(API key only)* |
 | Purchase invoices | 18 | all | `pdfs:read` · `purchase_invoices:delete` · `purchase_invoices:read` · `purchase_invoices:transition` · `purchase_invoices:write` |
 | Recurring invoices | 18 | all | `recurring_invoices:delete` · `recurring_invoices:read` · `recurring_invoices:transition` · `recurring_invoices:write` |
-| Taxes | 16 | all | `taxes:read` · `taxes:write` |
-| Managed companies (gestoría) | 13 | 0 | `companies:delete` · `companies:read` · `companies:write` *(API key only)* |
+| Account members & invitations | 16 | 0 | `invitations:read` · `invitations:write` · `members:read` · `members:write` *(API key only)* |
+| Account NIFs & usage | 15 | 1 | `account:read` · `companies:delete` · `companies:read` · `companies:write` *(API key only)* |
 | Price lists | 13 | all | `price_lists:read` · `price_lists:write` |
 | Webhooks & events | 13 | all | `events:read` · `webhooks:delete` · `webhooks:read` · `webhooks:write` |
 | Employees | 12 | all | `employees:read` · `employees:write` |
 | Series | 12 | all | `series:read` · `series:write` |
+| Taxes | 12 | all | `taxes:read` |
 | Work schedules | 11 | 5 | `work_schedules:read` · `work_schedules:write` *(API key only)* |
-| Account members & invitations | 10 | 0 | `invitations:read` · `invitations:write` · `members:read` · `members:write` *(API key only)* |
+| Account webhooks | 10 | 0 | `webhooks:delete` · `webhooks:read` · `webhooks:write` *(API key only)* |
 | Tax reports | 9 | all | `tax_reports:read` · `tax_reports:write` |
-| API keys | 5 | 2 | `account:read` · `account:write` *(API key only)* |
+| API keys | 6 | 2 | `account:read` · `account:write` *(API key only)* |
+| Account ownership & NIF transfers | 5 | 0 | `account:owner` · `nif_transfers:read` · `nif_transfers:write` *(API key only)* |
 | Employee seats | 5 | all | `employees:read` · `employees:write` |
 | FacturaE | 5 | all | `facturae:read` · `facturae:write` |
-| Account ownership & claim tokens | 4 | 0 | `account:owner` · `claim_tokens:read` · `claim_tokens:write` *(API key only)* |
 | Company account | 4 | 3 | `account:read` · `account:write` *(API key only)* |
+| Developer settings & request logs | 4 | 0 | `developers:read` *(API key only)* |
 | Emails | 3 | 0 | `emails:read` *(API key only)* |
 | Holidays | 3 | all | `holidays:read` |
 | Presence | 3 | all | `presence:read` |
-| Account usage & issuing readiness | 2 | 1 | `account:read` · `companies:read` *(API key only)* |
-| Developer settings | 2 | 0 | `developers:read` *(API key only)* |
+| Consolidated panel (gestoría) | 1 | 0 | `companies:read` *(API key only)* |
 
 The rows are **measured, not hand-maintained**: the domain is the
 `App\Mcp\Tools\<Domain>` namespace of every tool the public MCP server actually
 publishes, and the scopes are those tools' declared `RequiredScope`, counted
 through the same code path that answers `tools/list` for a reference holder
-(enterprise plan, scope `*`). Measured **2026-09-21** against the
-`nif-axis-api` branch. Every scope belongs to the closed scope catalog of the
+(enterprise plan, scope `*`). Measured **2026-10-04** against the
+`feat/epic-nif-axis-api` branch. Every scope belongs to the closed scope catalog of the
 contract; `clients:*` and `suppliers:*` are no longer in it, which is why those
 two rows are gone.
 
