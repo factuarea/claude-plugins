@@ -7,8 +7,9 @@ description: Entry point for building on the Factuarea public API — invoicing,
 
 Factuarea is a multi-tenant invoicing SaaS for Spanish businesses. Its public
 API (`https://api.factuarea.com/v1`) covers invoices, quotes, pro-formas,
-delivery notes, recurring and purchase invoices, contacts, products, price
-lists, document series, taxes, VeriFactu (AEAT) and webhooks.
+delivery notes, recurring invoices and expenses, the purchase scanner
+(`purchase_scans`), contacts, products, price lists, document series, taxes,
+VeriFactu (AEAT) and webhooks.
 
 There is **one** party resource: `contacts`. A customer and a supplier are
 **roles** of the same contact (`roles: ["customer"]`, `roles: ["supplier"]`, and
@@ -30,8 +31,18 @@ look anything up, and who takes it from here. It deliberately does not repeat
 what the four specialised skills cover in depth — when the task has a shape,
 hand it over.
 
-The API is in **private beta**: a company has to be allowlisted before its keys
-work. Request access at `info@factuarea.com`.
+The public API is **included in every Factuarea plan**, trial included: any
+company can create keys in the dashboard.
+
+## Product terminology and stable contracts
+
+The product calls purchases **Expenses** (ES: Gastos; CA: Despeses) and sales
+**Invoices** (ES: Facturas; CA: Factures). Recognize the former names “purchase
+invoices” and “sales invoices” in user requests, but use the current names in
+responses. A supplier invoice is still a fiscal supporting document for an expense.
+Resource names such as `purchase_invoices`, scopes, event IDs, tool names, SDK
+methods and routes stay unchanged. Never invent an `expenses` resource or rename
+a tool to match a display label.
 
 ## The account model
 
@@ -259,6 +270,40 @@ lifecycle — each finding with a severity, a `file:line` and the fix.
 the code against the live spec and the published SDK release, classify every
 difference as breaking or additive, apply breaking first. → **`factuarea-upgrade`**
 
+**"I want to push supplier invoices and receipts into Factuarea."** That is the
+purchase scanner, resource `purchase_scans` (scopes `purchase_invoices:read`,
+`:write` and `:delete`; the company plan must include the scanner). Thirteen v1
+operations:
+
+| Group | Operations |
+| --- | --- |
+| Ingest | `POST /v1/companies/{company}/purchase-scans` — `multipart/form-data`, field `files[]`: up to 20 PDF, JPEG or PNG files, **20 MiB per file and 100 MiB per batch**; answers `202` with `accepted[]` and `rejected[]` |
+| Read | `GET /v1/companies/{company}/purchase-scans` (cursor, filters by `status`, `source`, dates) · `GET /v1/companies/{company}/purchase-scans/{id}` (evidence-first extraction, issues, `available_actions`, current `version`) · `GET /v1/companies/{company}/purchase-scans/{id}/source` (download the original) · `GET /v1/companies/{company}/purchase-scans/stats` · `GET /v1/companies/{company}/purchase-scan-emails` (mailbox) · `GET /v1/companies/{company}/purchase-invoices/expense-categories` |
+| Work the scan | `PATCH /v1/companies/{company}/purchase-scans/{id}/review` · `POST /v1/companies/{company}/purchase-scans/{id}/retry` · `POST /v1/companies/{company}/purchase-scans/{id}/duplicate-resolution` (`link_existing` or `archive`) · `POST /v1/companies/{company}/purchase-scans/{id}/convert` (one draft expense) |
+| Archive | `DELETE /v1/companies/{company}/purchase-scans/{id}` · `POST /v1/companies/{company}/purchase-scans/{id}/restore` |
+
+- Send an **`Idempotency-Key`** on the upload and on every write; a replay
+  returns the same result without ingesting or converting twice. Every
+  change to an existing scan also carries the scan's current `expected_version` — a stale one is
+  `409`: reload and decide again.
+- **`429` `ocr_company_quota_exceeded`** means the company's monthly
+  document-reading quota is used up. It carries `Retry-After` (seconds until
+  the quota renews) and it is **not recoverable** before then — the scan's
+  `last_error` reports `recoverable: false`. Wait; do not retry in a loop.
+- Empresario shares **100 scans/month and 10/day** across all company users and channels; Enterprise is unlimited. A persisted scan with `deferred_reason=ocr_daily_quota_reached` and `deferred_until` is queued for automatic resumption at the daily reset. Keep its ID and do not upload it again or retry while deferred.
+- List responses publish `facets`. Detail responses publish `attempts_total` separately from the recent attempts returned; a truncated attempt list is not the total.
+- **`403` `module_upgrade_required`** means the plan does not include the
+  scanner. No retry fixes it; the plan has to change.
+- With a **`fact_test_`** key the extraction is **simulated** and deterministic:
+  no OCR provider is called and no quota is consumed, and the scan always ends
+  in human review.
+- v1 has **no operation to swap the original file** of a scan: upload a new
+  document instead.
+- To have Claude work through the user's own scans (review, convert, resolve
+  duplicates) rather than write code, that is the **`factuarea-mcp`** plugin.
+
+→ **`factuarea-implement`** for the calls, **`factuarea-audit`** before production.
+
 **"What do the docs say about X?"** Stay here: `factuarea docs grep "X"` to find
 the sections, `factuarea docs get <path>` to read one whole. Quote what it says;
 do not fill gaps from memory.
@@ -304,4 +349,4 @@ account the code is writing to.
 - SDKs: <https://docs.factuarea.com/sdks>
 - CLI: <https://docs.factuarea.com/cli>
 - API keys: <https://app.factuarea.com/settings/developers/api-keys>
-- Support: <https://docs.factuarea.com/support> · beta access: `info@factuarea.com`
+- Support: <https://docs.factuarea.com/support> · contact: `info@factuarea.com`

@@ -4,8 +4,8 @@ Connects [Claude Code](https://claude.com/claude-code) to the
 **[Factuarea](https://factuarea.com) MCP server** — the Factuarea public API
 exposed as tools for invoicing, quotes, pro-formas, delivery notes, recurring &
 purchase invoices, contacts — customers and suppliers are roles of one
-contact — products, price lists, document series, taxes, VeriFactu (AEAT) and
-webhooks for Spanish companies.
+contact — products, price lists, document series, taxes, VeriFactu (AEAT),
+tasks and projects, and webhooks for Spanish companies.
 
 The plugin ships two things:
 
@@ -52,8 +52,9 @@ Use a `fact_test_` key for the isolated sandbox (external effects off).
 
 Once connected, just ask Claude to work with your Factuarea data — "list this
 quarter's unpaid invoices", "create a draft invoice for Acme S.L.", "check the
-VeriFactu chain", "add a webhook endpoint". The skill loads automatically to
-guide those calls; you can also invoke it manually:
+VeriFactu chain", "add a webhook endpoint", "list the tasks assigned to me this
+week". The skill loads automatically to guide those calls; you can also invoke it
+manually:
 
 ```text
 /factuarea-mcp:factuarea-mcp
@@ -72,7 +73,9 @@ guide those calls; you can also invoke it manually:
   `automations:delete`. Managed-account tools need the privileged scope
   `accounts:*`, which `*` does not cover and OAuth never grants; bulk import of
   managed accounts has no MCP tool.
-- **33 tool domains** with their tool counts, OAuth reach and scopes, plus how
+- **Tool domains** with their tool counts, OAuth reach and scopes — tasks and
+  projects (deleting them is API-key only), users, notifications and the agenda
+  among them — plus how
   plan/module and feature flags further narrow what's listed.
 - **Identity** — opaque `id` (UUID v7), foreign keys as `*_id`.
 - **Cursor pagination** — `{ data, has_more, next_cursor }`, no page numbers.
@@ -87,7 +90,8 @@ guide those calls; you can also invoke it manually:
   scopes · errors · test-mode
 - Docs home: <https://docs.factuarea.com>
 - Dashboard / API keys: <https://app.factuarea.com/settings/developers/api-keys>
-- Beta access: `info@factuarea.com`
+- Contact: `info@factuarea.com`
+- MCP server repository: <https://github.com/factuarea/factuarea-mcp>
 
 ## License
 

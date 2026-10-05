@@ -1,6 +1,6 @@
 ---
 name: factuarea-mcp
-description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, recurring & purchase invoices, contacts (customers and suppliers are roles of one contact), products, price lists, document series, taxes, VeriFactu (AEAT) and webhooks for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their accounting data — search/create/send invoices, manage contacts, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, the error envelope, and test (sandbox) mode.
+description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, recurring & purchase invoices, contacts (customers and suppliers are roles of one contact), products, price lists, document series, taxes, VeriFactu (AEAT), tasks and projects, and webhooks for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their accounting data — search/create/send invoices, manage contacts, follow tasks and projects, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, the error envelope, and test (sandbox) mode.
 ---
 
 # Factuarea MCP server
@@ -95,15 +95,29 @@ maximum reach**:
     `absences:transition`, `time_entries:write`, `work_schedules:write`.
   - **Irreversible or credential-shaped operations** —
     `delivery_notes:gdpr_forget` (forgetting a delivery-note signature audit
-    trail) and `automations:delete`.
+    trail), `automations:delete` and the deletion of tasks and projects
+    (`tasks:delete`, `projects:delete`), which takes comments, attachments and
+    logged time with it.
+  OAuth apps do reach the reading and writing of tasks and projects (the writes
+  are shown with a warning and not pre-checked), the member directory
+  (`users:read`) and the user's own notifications.
 
 Beyond the channel, the tools you see in `tools/list` are further narrowed by:
 
 - the **scopes** actually granted (a tool whose `RequiredScope` you lack is
   hidden, and invoking it returns `insufficient_scope`);
-- the company's **subscription plan / module** (e.g. `vault:*` needs the Vault
-  module, plan empresario+); and
+- the company's **subscription plan / module**; and
 - **feature flags**.
+
+## Product terminology and stable contracts
+
+The product calls purchases **Expenses** (ES: Gastos; CA: Despeses) and sales
+**Invoices** (ES: Facturas; CA: Factures). Recognize the former names “purchase
+invoices” and “sales invoices” in user requests, but use the current names in
+responses. A supplier invoice is still a fiscal supporting document for an expense.
+Resource names such as `purchase_invoices`, scopes, event IDs, tool names, SDK
+methods and routes stay unchanged. Never invent an `expenses` resource or rename
+a tool to match a display label.
 
 So an OAuth session with read-only scopes on an emprendedor plan will list far
 fewer than 366 tools — that's expected, not an error.
@@ -165,8 +179,53 @@ through the same code path that answers `tools/list` for a reference holder
 contract; `clients:*` and `suppliers:*` are no longer in it, which is why those
 two rows are gone.
 
+Four more domains sit outside the measured table above and join it when the
+counts are re-measured: **Projects** (`projects:read` · `projects:write` ·
+`projects:delete` *(API key only)*; `invoice_project_time` also needs
+`invoices:write`), **Tasks** (`tasks:read` · `tasks:write` · `tasks:delete`
+*(API key only)*), **Users** (`users:read`) and **Notifications**
+(`notifications:read` · `notifications:write`); the agenda reads through
+`tasks:read` (each extra layer, such as invoice due dates, also needs its own
+read scope). `update_series` edits a series under the fiscal guards of the
+numbering: the code and mask are fixed once documents exist, the purpose once it
+has an invoice, and all numbering fields lock when the AEAT accepts a record; a
+series is never deleted, archive it.
+
 PDF downloads and payment receipts use the transversal `pdfs:read` scope;
 activity/event logs use `events:read`.
+
+The counts above are a snapshot and the catalog grows. **Discover the tools at
+runtime with `tools/list`**: it is the authoritative list for the current
+session, and a tool missing from this table is not missing from the server.
+
+### Purchase scanner flow
+
+The purchase scanner turns supplier invoices and receipts into draft
+expenses. Its tools live under the `purchase_invoices:*` scopes and need a plan
+that includes the scanner. Documents arrive from the app, the scanner mailbox
+or the REST API; there is no MCP tool to upload them.
+
+1. **Find** — `search_purchase_scans` (by status, source, dates),
+   `get_purchase_scan_stats` for the counters, `list_purchase_scan_emails` for
+   what the mailbox received. Search responses include `facets`; use those counts rather than inferring totals from one cursor page.
+2. **Inspect** — `get_purchase_scan`: extraction with evidence, issues,
+   `available_actions` and the current `version`. Every mutation below sends
+   that version as `expected_version`; a stale one fails, so re-read and ask
+   again.
+   `attempts_total` counts all attempts even when the detail only includes recent ones.
+3. **Review** — `save_purchase_scan_review` with the user's corrections;
+   `retry_purchase_scan` starts or re-queues a recoverable scan.
+4. **Finish** — one of:
+   - `convert_purchase_scan` creates the draft expense;
+   - `resolve_purchase_scan_duplicate` links it to an existing expense
+     (`link_existing`) or archives it (`archive`);
+   - `archive_purchase_scan` archives it (`restore_purchase_scan` undoes it).
+
+**Always ask the user to confirm before calling `convert_purchase_scan`,
+`resolve_purchase_scan_duplicate` or `archive_purchase_scan`**, stating which
+scan and what will happen. A `429` with code `ocr_company_quota_exceeded` means
+the monthly quota is used up and is not recoverable before `Retry-After`: do
+not retry in a loop. Empresario shares 100 scans/month and 10/day across the company; Enterprise is unlimited. If a saved scan has `deferred_reason=ocr_daily_quota_reached` and `deferred_until`, the original is already safe and processing resumes automatically at that time. Explain the daily wait, preserve the scan ID and do not upload it again or spend retries while deferred. The mailbox always requires human review.
 
 State changes are **discrete tools**, not a generic `change_status`: e.g.
 `mark_invoice_as_paid`, `send_invoice`, `void_invoice`, `accept_quote`,
@@ -189,7 +248,7 @@ that names the transition.
   Loop while `has_more` is `true`, passing `next_cursor` (or the last `id`) as
   `starting_after`. There are no page numbers.
 - **Amounts** are EUR unless stated; **dates** are `YYYY-MM-DD`.
-- **File uploads** (product media, purchase-invoice attachments, vault docs,
+- **File uploads** (product media, purchase-invoice attachments,
   FNMT certificates) travel as **base64 strings** in the tool arguments — the
   MCP transport has no multipart. The server decodes, validates size and magic
   bytes, then processes. Downloads come back as base64 too.
@@ -201,10 +260,10 @@ not the human message (messages are in Spanish):
 
 - `insufficient_scope` (`403`) — the token/key lacks the tool's `RequiredScope`.
   The fix is to re-authenticate (`/mcp` → Authenticate) and approve the scope,
-  or use a key that has it. Remember `verifactu:write` and the signature-forget
-  tool are **API-key only**.
+  or use a key that has it. Remember that the owner-only groups listed under
+  *Channel policy* are **API-key only**.
 - `addon_not_active` / module-not-available — the tool's module isn't in the
-  company's plan (e.g. Vault on emprendedor). Not a bug; the plan must include it.
+  company's plan. Not a bug; the plan must include that module.
 - **`422`** — validation or **business-rule violation** (invalid status
   transition, document not in an editable state, payment date out of range).
   Business-rule violations are `422`, not `403`/`409`.
@@ -239,8 +298,8 @@ Always build and rehearse in **test mode** first:
 - Docs home: <https://docs.factuarea.com> · OpenAPI: <https://docs.factuarea.com/api/openapi>
 - Dashboard / API keys: <https://app.factuarea.com/settings/developers/api-keys>
 
-The Factuarea public API is in **private beta** — companies must be allowlisted
-before keys or OAuth grants work. Request access at `info@factuarea.com`.
+The public API and the MCP server are **included in every Factuarea plan**,
+trial included. Create keys in the dashboard or connect over OAuth.
 
 ## Typical workflow
 
