@@ -64,8 +64,8 @@ manually:
 
 - **Connecting** via OAuth (consent with company + environment selection) or an
   API key header.
-- **Channel policy** — an API key with scope `*` reaches **487 tools**; OAuth reaches
-  **366**, because **121** sit behind scopes the consent catalog never grants —
+- **Channel policy** — an API key with scope `*` reaches **586 tools**; OAuth reaches
+  **453**, because **133** sit behind scopes the consent catalog never grants —
   account, membership, NIF-transfer and credential administration, account
   webhooks and request logs, `verifactu:write`,
   connected stores, workforce actions taken on someone's behalf, and
@@ -73,7 +73,7 @@ manually:
   `automations:delete`. Managed-account tools need the privileged scope
   `accounts:*`, which `*` does not cover and OAuth never grants; bulk import of
   managed accounts has no MCP tool.
-- **Tool domains** with their tool counts, OAuth reach and scopes — tasks and
+- **39 tool domains** with their tool counts, OAuth reach and scopes — tasks and
   projects (deleting them is API-key only), users, notifications and the agenda
   among them — plus how
   plan/module and feature flags further narrow what's listed.

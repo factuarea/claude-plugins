@@ -61,14 +61,14 @@ The catalog is the same set of tools, but the two channels resolve a **different
 maximum reach**:
 
 - **API key (owner's own key, scope `*`)** → the whole catalog a `*` holder
-  sees, **487 tools**. The owner is acting on their own account, so the key can
+  sees, **586 tools**. The owner is acting on their own account, so the key can
   cover everything, including the privileged operations below. Nine more tools
   (managed accounts: provisioning, plan changes, ending a management) are
   **not** in that figure: they need the privileged scope `accounts:read` /
   `accounts:write`, which `*` does **not** cover, so they only appear for a key
   that carries `accounts:*`, granted by a superadmin. OAuth never grants it.
-- **OAuth (third-party app, curated scopes)** → **366 tools**. The remaining
-  **121** are unreachable by consent: the OAuth scope catalog has no dotted
+- **OAuth (third-party app, curated scopes)** → **453 tools**. The remaining
+  **133** are unreachable by consent: the OAuth scope catalog has no dotted
   scope that translates to them, so a third-party app can never reach them on
   the user's behalf. They fall into five groups:
   - **Account and credential administration** — `account:write`, `account:owner`,
@@ -120,44 +120,47 @@ methods and routes stay unchanged. Never invent an `expenses` resource or rename
 a tool to match a display label.
 
 So an OAuth session with read-only scopes on an emprendedor plan will list far
-fewer than 366 tools — that's expected, not an error.
+fewer than 453 tools — that's expected, not an error.
 
-## Tool domains (33)
+## Tool domains (39)
 
 Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_contact`,
 `mark_invoice_as_paid`). **Tools** is what an API key with scope `*` sees;
 **OAuth** is what a consent grant can reach (`all` when the whole domain is
 reachable).
 
-The catalog is **487 tools** across **33 domains**, of which **366** are
-reachable by an OAuth consent grant and **121** are API-key only. Privileged
+The catalog is **586 tools** across **39 domains**, of which **453** are
+reachable by an OAuth consent grant and **133** are API-key only. Privileged
 `accounts:*` tools (9, managed accounts) are outside these figures: only a
 credential with that scope sees them.
 
 | Domain | Tools | OAuth | Scopes |
 | --- | ---: | ---: | --- |
-| Invoices | 44 | all | `invoices:delete` · `invoices:read` · `invoices:send` · `invoices:void` · `invoices:write` · `pdfs:read` |
+| Tasks | 52 | 46 | `tasks:read` · `tasks:write` · `tasks:delete` *(API key only)* |
+| Invoices | 45 | all | `invoices:delete` · `invoices:read` · `invoices:send` · `invoices:void` · `invoices:write` · `pdfs:read` |
 | Products | 38 | all | `products:delete` · `products:read` · `products:write` |
+| VeriFactu | 31 | 20 | `verifactu:read` · `verifactu:write` *(API key only)* |
 | Time tracking | 29 | 17 | `payroll_exports:read` · `time_entries:read` · `time_entries:write` *(API key only)* |
-| VeriFactu | 27 | 19 | `verifactu:read` · `verifactu:write` *(API key only)* |
-| Contacts | 26 | all | `contacts:delete` · `contacts:read` · `contacts:write` |
+| Contacts | 28 | all | `contacts:delete` · `contacts:read` · `contacts:write` |
 | Absences | 25 | 10 | `absences:read` · `absences:transition` · `absences:write` *(API key only)* |
 | Delivery notes | 22 | 21 | `delivery_notes:delete` · `delivery_notes:read` · `delivery_notes:transition` · `delivery_notes:write` · `pdfs:read` · `delivery_notes:gdpr_forget` *(API key only)* |
+| Projects | 22 | 19 | `invoices:write` · `projects:read` · `projects:write` · `projects:delete` *(API key only)* |
 | Connected stores & integrations | 20 | 0 | `integration_events:read` · `integration_events:write` · `payouts:read` · `shopify_store:write` · `stores:read` · `stores:write` · `stripe_autoinvoicing:read` · `stripe_autoinvoicing:write` · `woocommerce_store:write` *(API key only)* |
 | Pro-formas | 20 | all | `pdfs:read` · `proformas:delete` · `proformas:read` · `proformas:send` · `proformas:transition` · `proformas:write` |
 | Quotes | 20 | all | `pdfs:read` · `quotes:delete` · `quotes:read` · `quotes:send` · `quotes:transition` · `quotes:write` |
+| Purchase invoices | 19 | all | `pdfs:read` · `purchase_invoices:delete` · `purchase_invoices:read` · `purchase_invoices:transition` · `purchase_invoices:write` |
 | Automations | 18 | 17 | `automation_runs:read` · `automations:read` · `automations:write` · `automations:delete` *(API key only)* |
-| Purchase invoices | 18 | all | `pdfs:read` · `purchase_invoices:delete` · `purchase_invoices:read` · `purchase_invoices:transition` · `purchase_invoices:write` |
 | Recurring invoices | 18 | all | `recurring_invoices:delete` · `recurring_invoices:read` · `recurring_invoices:transition` · `recurring_invoices:write` |
 | Account members & invitations | 16 | 0 | `invitations:read` · `invitations:write` · `members:read` · `members:write` *(API key only)* |
 | Account NIFs & usage | 15 | 1 | `account:read` · `companies:delete` · `companies:read` · `companies:write` *(API key only)* |
 | Price lists | 13 | all | `price_lists:read` · `price_lists:write` |
+| Series | 13 | all | `series:read` · `series:write` |
 | Webhooks & events | 13 | all | `events:read` · `webhooks:delete` · `webhooks:read` · `webhooks:write` |
 | Employees | 12 | all | `employees:read` · `employees:write` |
-| Series | 12 | all | `series:read` · `series:write` |
 | Taxes | 12 | all | `taxes:read` |
 | Work schedules | 11 | 5 | `work_schedules:read` · `work_schedules:write` *(API key only)* |
 | Account webhooks | 10 | 0 | `webhooks:delete` · `webhooks:read` · `webhooks:write` *(API key only)* |
+| Purchase scanner | 10 | all | `purchase_invoices:delete` · `purchase_invoices:read` · `purchase_invoices:write` |
 | Tax reports | 9 | all | `tax_reports:read` · `tax_reports:write` |
 | API keys | 6 | 2 | `account:read` · `account:write` *(API key only)* |
 | Account ownership & NIF transfers | 5 | 0 | `account:owner` · `nif_transfers:read` · `nif_transfers:write` *(API key only)* |
@@ -167,26 +170,22 @@ credential with that scope sees them.
 | Developer settings & request logs | 4 | 0 | `developers:read` *(API key only)* |
 | Emails | 3 | 0 | `emails:read` *(API key only)* |
 | Holidays | 3 | all | `holidays:read` |
+| Notifications | 3 | all | `notifications:read` · `notifications:write` |
 | Presence | 3 | all | `presence:read` |
+| Users | 2 | all | `users:read` |
+| Agenda | 1 | all | `tasks:read` |
 | Consolidated panel (gestoría) | 1 | 0 | `companies:read` *(API key only)* |
 
 The rows are **measured, not hand-maintained**: the domain is the
 `App\Mcp\Tools\<Domain>` namespace of every tool the public MCP server actually
 publishes, and the scopes are those tools' declared `RequiredScope`, counted
 through the same code path that answers `tools/list` for a reference holder
-(enterprise plan, scope `*`). Measured **2026-10-04** against the
-`feat/epic-nif-axis-api` branch. Every scope belongs to the closed scope catalog of the
-contract; `clients:*` and `suppliers:*` are no longer in it, which is why those
-two rows are gone.
+(enterprise plan, scope `*`; `php artisan public-api:export-stats`). Measured
+**2026-10-05** against backend `feat/epic-nif-axis-api` @ `cb15899de0`. Every
+scope belongs to the closed scope catalog of the contract; `clients:*` and
+`suppliers:*` are no longer in it, which is why those two rows are gone.
 
-Four more domains sit outside the measured table above and join it when the
-counts are re-measured: **Projects** (`projects:read` · `projects:write` ·
-`projects:delete` *(API key only)*; `invoice_project_time` also needs
-`invoices:write`), **Tasks** (`tasks:read` · `tasks:write` · `tasks:delete`
-*(API key only)*), **Users** (`users:read`) and **Notifications**
-(`notifications:read` · `notifications:write`); the agenda reads through
-`tasks:read` (each extra layer, such as invoice due dates, also needs its own
-read scope). `update_series` edits a series under the fiscal guards of the
+`update_series` edits a series under the fiscal guards of the
 numbering: the code and mask are fixed once documents exist, the purpose once it
 has an invoice, and all numbering fields lock when the AEAT accepts a record; a
 series is never deleted, archive it.
