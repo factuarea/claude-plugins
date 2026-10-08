@@ -133,12 +133,12 @@ Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_contact`,
 | Automations | `automations:read` · `automations:write` · `automations:delete` · `automation_runs:read` |
 | Account | `account:read` · `account:write` † |
 | API keys | `account:read` · `account:write` † |
-| Managed companies (gestoría) | `companies:*` † · `api_keys:*` † |
+| Managed companies (gestoría) | `companies:*` † · `api_keys:*` † (the `*_gestoria_seat_offer_redemption` tools require the `gestoria` module) |
 | Payments & gateways | `stripe_autoinvoicing:*` † · `payouts:read` † · `integration_events:*` † · `stores:*` † · `woocommerce_store:write` † · `shopify_store:write` † |
 | Emails | `emails:read` † |
 | API request logs | `developers:read` † |
-| Employees | `employees:read` · `employees:write` |
-| Employee seats | `employees:read` · `employees:write` |
+| Employees | `employees:read` · `employees:write` (the `*_employee_batch` tools require the `control_horario` module) |
+| Employee seats | `employees:read` · `employees:write` (the `*_employee_seat_offer_redemption` tools require the `control_horario` module) |
 | Work schedules | `work_schedules:read` · `work_schedules:write` † |
 | Time tracking | `time_entries:read` · `time_entries:write` † · `payroll_exports:read` |
 | Absences | `absences:read` · `absences:write` † · `absences:transition` † |
@@ -223,6 +223,11 @@ not the human message (messages are in Spanish):
   *Channel policy* are **API-key only**.
 - `addon_not_active` / module-not-available — the tool's module isn't in the
   company's plan. Not a bug; the plan must include that module.
+- `employee_seat_payment_method_required` (`402`) — creating or reactivating an
+  employee charges a seat whenever the plan bills (also when the subscription is
+  `past_due` or the plan was granted); Enterprise, managed companies and an
+  active trial are exempt. The company has no payment method: send the user to
+  `error.details.payment_setup_url`. Nothing was created.
 - **`422`** — validation or **business-rule violation** (invalid status
   transition, document not in an editable state, payment date out of range).
   Business-rule violations are `422`, not `403`/`409`.
