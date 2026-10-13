@@ -1,0 +1,260 @@
+{
+  "original_task": "crm-mcp-plugin-delivery 2.4",
+  "native_tools": [
+    {
+      "name": "create_crm_activity",
+      "area": "commercial-journey",
+      "scope": "crm_activities:write",
+      "category": "WRITE",
+      "operation": "crm_activities.create",
+      "kind": "mutation",
+      "required_arguments": [
+        "type",
+        "title",
+        "target",
+        "timezone",
+        "idempotency_key"
+      ],
+      "optional_arguments": [
+        "body",
+        "owner_id",
+        "due_at"
+      ],
+      "confirmation": "human-review",
+      "recovery_tool": null,
+      "original_for": null,
+      "original_wire_argument": null,
+      "source": "backend/app/CrmActivity/Infrastructure/Mcp/CreateCrmActivityTool.php",
+      "source_sha256": "5f983c6008eac5c6871ec3215171ab4153f7f716c92dcca0bdf3cc4b20cf0c17"
+    },
+    {
+      "name": "create_lead",
+      "area": "commercial-journey",
+      "scope": "crm_leads:write",
+      "category": "WRITE",
+      "operation": "crm_leads.create",
+      "kind": "mutation",
+      "required_arguments": [],
+      "optional_arguments": [
+        "id",
+        "name",
+        "email",
+        "phone",
+        "mobile",
+        "company_name",
+        "notes",
+        "address",
+        "metadata",
+        "estimated_value",
+        "typed_fields",
+        "source",
+        "owner_id",
+        "team_id",
+        "idempotency_key"
+      ],
+      "confirmation": "human-review",
+      "recovery_tool": null,
+      "original_for": null,
+      "original_wire_argument": null,
+      "source": "backend/app/Lead/Infrastructure/Mcp/CreateLeadTool.php",
+      "source_sha256": "77f59be0a61f81522d1d015e6978755eb5db7eb0295797b03a2581e15823d712"
+    },
+    {
+      "name": "create_opportunity",
+      "area": "commercial-journey",
+      "scope": "crm_opportunities:write",
+      "category": "WRITE",
+      "operation": "crm_opportunities.create",
+      "kind": "mutation",
+      "required_arguments": [
+        "title",
+        "pipeline_id",
+        "stage_id",
+        "amount",
+        "currency"
+      ],
+      "optional_arguments": [
+        "lead_id",
+        "contact_id",
+        "owner_id",
+        "team_id",
+        "idempotency_key"
+      ],
+      "confirmation": "human-review",
+      "recovery_tool": null,
+      "original_for": null,
+      "original_wire_argument": null,
+      "source": "backend/app/Opportunity/Infrastructure/Mcp/CreateOpportunityTool.php",
+      "source_sha256": "65c52300ddbb138a4970d9ba677c0abf6b291ec65f7605f40a9af268b8d88f3e"
+    },
+    {
+      "name": "find_lead",
+      "area": "commercial-journey",
+      "scope": "crm_leads:read",
+      "category": "READ",
+      "operation": "crm_leads.show",
+      "kind": "query",
+      "required_arguments": [
+        "id"
+      ],
+      "optional_arguments": [],
+      "confirmation": "none",
+      "recovery_tool": null,
+      "original_for": null,
+      "original_wire_argument": null,
+      "source": "backend/app/Lead/Infrastructure/Mcp/FindLeadTool.php",
+      "source_sha256": "d50e29f1562e11636555fcca8ae0c4d83fb5947f9740060ca05c8d707cd0c367"
+    },
+    {
+      "name": "get_crm_activity",
+      "area": "commercial-journey",
+      "scope": "crm_activities:read",
+      "category": "READ",
+      "operation": "crm_activities.show",
+      "kind": "query",
+      "required_arguments": [
+        "id"
+      ],
+      "optional_arguments": [],
+      "confirmation": "none",
+      "recovery_tool": null,
+      "original_for": null,
+      "original_wire_argument": null,
+      "source": "backend/app/CrmActivity/Infrastructure/Mcp/GetCrmActivityTool.php",
+      "source_sha256": "547cc86ceed5699c739c8cc55eaea53d91d87a260260e8c6a88764566e78dd11"
+    },
+    {
+      "name": "get_opportunity",
+      "area": "commercial-journey",
+      "scope": "crm_opportunities:read",
+      "category": "READ",
+      "operation": "crm_opportunities.show",
+      "kind": "query",
+      "required_arguments": [
+        "id"
+      ],
+      "optional_arguments": [],
+      "confirmation": "none",
+      "recovery_tool": null,
+      "original_for": null,
+      "original_wire_argument": null,
+      "source": "backend/app/Opportunity/Infrastructure/Mcp/GetOpportunityTool.php",
+      "source_sha256": "e807b71b20b68d3e1eaade387dcc0df9d6ce268a8b259d473088afd884cdd776"
+    },
+    {
+      "name": "get_pipeline",
+      "area": "commercial-journey",
+      "scope": "crm_pipelines:read",
+      "category": "READ",
+      "operation": "crm_pipelines.show",
+      "kind": "query",
+      "required_arguments": [
+        "id"
+      ],
+      "optional_arguments": [
+        "include_archived"
+      ],
+      "confirmation": "none",
+      "recovery_tool": null,
+      "original_for": null,
+      "original_wire_argument": null,
+      "source": "backend/app/Pipeline/Infrastructure/Mcp/GetPipelineTool.php",
+      "source_sha256": "4649768f296c2efd49480e84cc23541f54c05c5fdecf650eba46f657c5451a42"
+    },
+    {
+      "name": "list_crm_activities",
+      "area": "commercial-journey",
+      "scope": "crm_activities:read",
+      "category": "READ",
+      "operation": "crm_activities.index",
+      "kind": "query",
+      "required_arguments": [],
+      "optional_arguments": [
+        "filters",
+        "cursor",
+        "limit"
+      ],
+      "confirmation": "none",
+      "recovery_tool": null,
+      "original_for": null,
+      "original_wire_argument": null,
+      "source": "backend/app/CrmActivity/Infrastructure/Mcp/ListCrmActivitiesTool.php",
+      "source_sha256": "a81ebf75fb7268f50a7653c4333205d02e8abd65693b21bbb75de2ea59c82635"
+    },
+    {
+      "name": "list_pipelines",
+      "area": "commercial-journey",
+      "scope": "crm_pipelines:read",
+      "category": "READ",
+      "operation": "crm_pipelines.index",
+      "kind": "query",
+      "required_arguments": [],
+      "optional_arguments": [
+        "search",
+        "status",
+        "team_id",
+        "sort",
+        "cursor",
+        "limit"
+      ],
+      "confirmation": "none",
+      "recovery_tool": null,
+      "original_for": null,
+      "original_wire_argument": null,
+      "source": "backend/app/Pipeline/Infrastructure/Mcp/ListPipelinesTool.php",
+      "source_sha256": "2661eff64d26d7acd9078bf974857ae05801d404f51ac3172ee28684b61ee18a"
+    }
+  ],
+  "contract_sources": [
+    {
+      "path": "backend/app/Lead/Infrastructure/Http/Request/LeadRequestContext.php",
+      "sha256": "556c35a8cb6c0a24dc2a42714a3018e0e48f54d7829608e058060e9749cee642"
+    },
+    {
+      "path": "backend/app/Lead/Infrastructure/Http/Resource/LeadOperationResource.php",
+      "sha256": "ae1ff6acfb65fa2e13714c8f5bb15b1d7096b90fd0f71034eee67ead5512b336"
+    },
+    {
+      "path": "backend/app/Opportunity/Infrastructure/Http/Request/OpportunityRequestContext.php",
+      "sha256": "737450b7bdd10e38f8f0014194f7d963f9bec47d339e67c6aa870cbdd5d2705f"
+    },
+    {
+      "path": "backend/app/Opportunity/Infrastructure/Http/Resource/OpportunityResource.php",
+      "sha256": "3cbb9aa5bf17efadc2c99c491d6f20abb0858296af27070665fcfa0880ba6146"
+    },
+    {
+      "path": "backend/app/Pipeline/Infrastructure/Http/Resource/PipelineV1Resource.php",
+      "sha256": "44fb632558f1cd0b7cbaf0b4d488705e927da6cc5be00f79c7b269c5f84d4e29"
+    },
+    {
+      "path": "backend/app/CrmActivity/Infrastructure/Http/Resource/CreateCrmActivityResource.php",
+      "sha256": "aa32e36b6df3fb091ba5b46e0923ac27aea1851cf16c300b6dab5209bf0cbdcf"
+    },
+    {
+      "path": "backend/app/CrmActivity/Application/Response/CreateCrmActivityResponse.php",
+      "sha256": "36590bfefa44fd45e340391df8f22f334d101cc8e815a949ac208381019f3e68"
+    },
+    {
+      "path": "backend/app/Lead/Infrastructure/Crm/CrmCapabilityManifest.php",
+      "sha256": "89b5553241c4c9edd57c3e2498ffae050261ecb408ddc7bd0981d555c997807f"
+    },
+    {
+      "path": "backend/app/Pipeline/Infrastructure/Crm/CrmCapabilityManifest.php",
+      "sha256": "2f871a494c43d9588cb935cdce363e42285bfea06ea757b64b41ab38051f55f1"
+    },
+    {
+      "path": "backend/app/Opportunity/Infrastructure/Crm/CrmCapabilityManifest.php",
+      "sha256": "0ce9ef1320a6093fda034f077ec350a666faa6d3bb8ede618767ff05f631cad4"
+    },
+    {
+      "path": "backend/app/CrmActivity/Infrastructure/Crm/CrmCapabilityManifest.php",
+      "sha256": "d01787f2c035e41001e85391c1e3388caf4c41246dac4e84bea4e570a7641e4c"
+    }
+  ],
+  "qualification": "Authenticated current native tools/list, current inputSchema and server authorizer/owner claim graph remain required; Source metadata is not discovery or a grant.",
+  "original_recovery_tools": [],
+  "recovery": "No dedicated Original MCP query in these three create families; preserve key/body/server identity and stop unconfirmed without resend or current-head-as-receipt.",
+  "conversion": "Excluded from this journey: Lead conversion targets BusinessContact, never creates Opportunity.",
+  "public_id_boundary": "Native MCP resources use id/*_id. Activity creation returns state/effect_id/activity_id/activity; do not assume data.id.",
+  "offline_cases": "Synthetic UUIDs below live only in pure planning tests; not tenant selections, server receipts or runtime evidence."
+}

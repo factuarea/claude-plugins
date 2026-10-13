@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "factuarea-crm-native",
+  "description": "Source recipes for native Factuarea CRM: lead to opportunity to activity, sequences, booking administration and canonical Task time. Requires current authenticated discovery and permissions.",
+  "version": "0.2.0",
+  "author": {
+    "name": "Factuarea",
+    "email": "info@factuarea.com",
+    "url": "https://factuarea.com"
+  },
+  "homepage": "https://docs.factuarea.com/mcp",
+  "repository": "https://github.com/factuarea/claude-plugins",
+  "license": "MIT",
+  "keywords": [
+    "factuarea",
+    "crm",
+    "mcp",
+    "oauth",
+    "sequences",
+    "booking",
+    "task-time",
+    "commercial-journey",
+    "leads",
+    "opportunities",
+    "activities"
+  ]
+}

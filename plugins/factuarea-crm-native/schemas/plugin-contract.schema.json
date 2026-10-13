@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://factuarea.com/plugin-contract/crm-native/1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "contract_version",
+    "package",
+    "package_version",
+    "server",
+    "compatibility",
+    "tools"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "./schemas/plugin-contract.schema.json"
+    },
+    "contract_version": {
+      "const": 1
+    },
+    "package": {
+      "const": "factuarea-crm-native"
+    },
+    "package_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "url",
+        "transport",
+        "authentication",
+        "company_selection",
+        "production_enabled_by_package",
+        "live_discovery_verified",
+        "live_server_version",
+        "protocol_compatibility"
+      ],
+      "properties": {
+        "name": {
+          "const": "factuarea"
+        },
+        "url": {
+          "const": "https://mcp.factuarea.com"
+        },
+        "transport": {
+          "const": "streamable-http"
+        },
+        "authentication": {
+          "const": "existing-server-oauth-or-api-key"
+        },
+        "company_selection": {
+          "const": "native-consent-or-current-credential"
+        },
+        "production_enabled_by_package": {
+          "const": false
+        },
+        "live_discovery_verified": {
+          "const": false
+        },
+        "live_server_version": {
+          "type": "null"
+        },
+        "protocol_compatibility": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "modern",
+            "legacy_initialize",
+            "verified_against"
+          ],
+          "properties": {
+            "modern": {
+              "const": [
+                "2026-07-28"
+              ]
+            },
+            "legacy_initialize": {
+              "const": [
+                "2025-11-25",
+                "2025-06-18"
+              ]
+            },
+            "verified_against": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "config",
+                "compatibility",
+                "implementation"
+              ],
+              "properties": {
+                "config": {
+                  "const": "backend/config/mcp.php"
+                },
+                "compatibility": {
+                  "const": "backend/docs/mcp/protocol-compatibility.md"
+                },
+                "implementation": {
+                  "const": "laravel/mcp@v1.0.1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository_baseline",
+        "app_contract",
+        "server_contract_requirement"
+      ],
+      "properties": {
+        "repository_baseline": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "app_contract": {
+          "const": "sha256-pinned-development-source"
+        },
+        "server_contract_requirement": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 31,
+      "maxItems": 31,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "server",
+          "area",
+          "scope",
+          "category",
+          "operation",
+          "kind",
+          "required_arguments",
+          "optional_arguments",
+          "confirmation",
+          "recovery_tool",
+          "original_for",
+          "original_wire_argument",
+          "source",
+          "source_sha256"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]+$"
+          },
+          "server": {
+            "const": "factuarea"
+          },
+          "area": {
+            "enum": [
+              "sequences",
+              "bookings",
+              "task-time",
+              "commercial-journey"
+            ]
+          },
+          "scope": {
+            "enum": [
+              "automation:read",
+              "automation:write",
+              "booking:read",
+              "booking:write",
+              "tasks:read",
+              "tasks:write",
+              "tasks:delete",
+              "crm_leads:read",
+              "crm_leads:write",
+              "crm_pipelines:read",
+              "crm_opportunities:read",
+              "crm_opportunities:write",
+              "crm_activities:read",
+              "crm_activities:write"
+            ]
+          },
+          "category": {
+            "enum": [
+              "READ",
+              "WRITE",
+              "DESTRUCTIVE"
+            ]
+          },
+          "operation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "kind": {
+            "enum": [
+              "query",
+              "mutation",
+              "control",
+              "original-query"
+            ]
+          },
+          "required_arguments": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "optional_arguments": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "confirmation": {
+            "enum": [
+              "none",
+              "human-review",
+              "strict-true",
+              "current-descriptor"
+            ]
+          },
+          "recovery_tool": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "original_for": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "original_wire_argument": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "pattern": "^backend/app/.+Tool\\.php$"
+          },
+          "source_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    }
+  }
+}

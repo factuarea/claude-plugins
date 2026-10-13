@@ -5,12 +5,13 @@ Official [Claude Code](https://claude.com/claude-code) plugin marketplace for
 Spanish businesses (invoicing, quotes, clients, suppliers, products, VeriFactu
 and webhooks).
 
-## Two plugins, two jobs
+## Plugins and workflows
 
 | Plugin | For | What it does |
 | --- | --- | --- |
 | [`factuarea-mcp`](./plugins/factuarea-mcp) | **Running your business** | Connects Claude Code to the **Factuarea MCP server** (`https://mcp.factuarea.com`) so Claude can call Factuarea tools directly — search/create/send invoices, manage clients, check VeriFactu, configure webhooks. Authenticate via OAuth or an API-key header. One skill, on using those tools well |
 | [`factuarea-api`](./plugins/factuarea-api) | **Building the integration** | Five developer skills for the code you write in your own repository: where to start, the official TypeScript and PHP SDKs, webhook receivers, auditing an existing integration, and realigning it after a contract or SDK change. **Declares no MCP server** |
+| [`factuarea-crm-native`](./plugins/factuarea-crm-native) | **Native CRM recipes — SOURCE 0.2.0** | Five skills with 31 native tool contracts, including lead→opportunity→activity, sequences, booking administration and canonical Task time. Requires current authenticated discovery and permissions; the package does not enable CRM capabilities |
 
 They are **complementary, not alternatives**.
 
@@ -41,6 +42,40 @@ Then install whichever you need:
 ```
 
 To update later, run `/plugin marketplace update factuarea`.
+
+## `factuarea-crm-native` — current SOURCE package
+
+The CRM entry is registered in this reviewed local catalog. Its publication in
+the upstream marketplace, client installation, OAuth and server discovery have
+not been performed by this SOURCE delivery. To load the self-contained package
+from a reviewed repository checkout:
+
+```sh
+python3 plugins/factuarea-crm-native/scripts/validate_package.py
+claude --plugin-dir ./plugins/factuarea-crm-native
+```
+
+For a local catalog installation, the operator selects this checkout explicitly:
+
+```text
+/plugin marketplace add /absolute/path/to/the/reviewed/repository
+/plugin install factuarea-crm-native@factuarea
+```
+
+Keep one native `factuarea` server connection. Select Company and sandbox in
+native consent or the current credential, then discover the actual tools and
+their input schemas. Start the commercial recipe with
+`/factuarea-crm-native:crm-commercial-journey`; follow its
+[installation/discovery and UUID recipe](./plugins/factuarea-crm-native/examples/journey.md#recorrido-literal-instalar-descubrir-lead-oportunidad-actividad).
+On 409 or an unconfirmed response, retain the original key, arguments and any
+server ID, and stop subsequent steps. These commercial creates have no dedicated
+Original MCP query; a current read does not recover the original receipt.
+
+The package preserves native names and scopes. Its metadata neither grants
+access nor changes `ratified=false` or capabilities OFF in the server SOURCE.
+Actual availability still requires current server authorization. See the
+[package README](./plugins/factuarea-crm-native/README.md) for the complete
+contract and unexecuted runtime gates.
 
 ## `factuarea-mcp` — operate the account
 

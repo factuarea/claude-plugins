@@ -1,0 +1,146 @@
+{
+  "created_on": "2026-10-10",
+  "package": "factuarea-crm-native",
+  "instruction_origin": "New Factuarea instructions consuming existing canonical tools; no application implementation copied.",
+  "plugin_repository": {
+    "baseline": "5aa26f14df729dbd8fac7e8017c1f94ed6f1b3d2",
+    "branch": "feature/crm-native-consumer-batch69",
+    "manifest_pattern": "plugins/factuarea-mcp/.claude-plugin/plugin.json",
+    "connection_pattern": "plugins/factuarea-mcp/.mcp.json",
+    "upstream_license": "MIT"
+  },
+  "native_source": [
+    {
+      "name": "cancel_crm_enrolment",
+      "source": "backend/app/Automation/Infrastructure/Mcp/SequenceBatch68/CancelCrmEnrolmentTool.php",
+      "source_sha256": "d36062a09f6043e156c2f1d50f9bff252bbc8e060baaff84a7cb2846a8c794f4"
+    },
+    {
+      "name": "create_task_time_entry",
+      "source": "backend/app/Mcp/Tools/Task/CreateTaskTimeEntryTool.php",
+      "source_sha256": "5c2dbec27cb542e13911a4a8e9dd811c98feecd203b62281d2f94bb237982182"
+    },
+    {
+      "name": "delete_task_time_entry",
+      "source": "backend/app/Mcp/Tools/Task/DeleteTaskTimeEntryTool.php",
+      "source_sha256": "7b81994ce2ffe92854aaeb16515b99d69ef8c08dcc699515e3223152ea4558dd"
+    },
+    {
+      "name": "enrol_crm_sequence",
+      "source": "backend/app/Automation/Infrastructure/Mcp/SequenceBatch68/EnrolCrmSequenceTool.php",
+      "source_sha256": "a7f59c16e4a3ff8672d44661e25bf2e484c5238189202cb24a1abf0c672b7adf"
+    },
+    {
+      "name": "get_booking_service",
+      "source": "backend/app/Booking/Infrastructure/Mcp/GetBookingServiceTool.php",
+      "source_sha256": "95c102fb1b7350e5214cef2a79eed2f09b14eb1b82dcbc25427e061524cee793"
+    },
+    {
+      "name": "get_crm_enrolment_original",
+      "source": "backend/app/Automation/Infrastructure/Mcp/SequenceBatch68/GetCrmEnrolmentOriginalTool.php",
+      "source_sha256": "260d7e9d5cc5a6c04883fc6d7a74ac1fbcdffcf80372ba539076b5dab4fd6907"
+    },
+    {
+      "name": "get_crm_sequence_original",
+      "source": "backend/app/Automation/Infrastructure/Mcp/SequenceBatch68/GetCrmSequenceOriginalTool.php",
+      "source_sha256": "d6e651b62dd2058f101e2650b2296413f5915fef4d6bb73c9e4d6ce0dd449d2c"
+    },
+    {
+      "name": "get_running_task_timer",
+      "source": "backend/app/Mcp/Tools/Task/GetRunningTaskTimerTool.php",
+      "source_sha256": "c729650a70c07e9f66972ee7654482508c68570b6a6eeada89757505cf0c5f16"
+    },
+    {
+      "name": "get_task_time_entry",
+      "source": "backend/app/Mcp/Tools/Task/GetTaskTimeEntryTool.php",
+      "source_sha256": "c90632ff8330e3e7f780a537e7cb7608eef4b337674e5ce1b83ef0bb2fd4eec9"
+    },
+    {
+      "name": "list_booking_services",
+      "source": "backend/app/Booking/Infrastructure/Mcp/ListBookingServicesTool.php",
+      "source_sha256": "a3db39e93d802e0f4ec3192b19983fa37355c9e5ccd6e7664e8daf0a41534866"
+    },
+    {
+      "name": "list_bookings",
+      "source": "backend/app/Booking/Infrastructure/Mcp/ListBookingsTool.php",
+      "source_sha256": "99fbd8d23610d8d10d5c6932c9a750a49e56ce97fc2eabfff421471c5eefb379"
+    },
+    {
+      "name": "list_crm_sequences",
+      "source": "backend/app/Automation/Infrastructure/Mcp/SequenceBatch68/ListCrmSequencesTool.php",
+      "source_sha256": "f9b5034fea1db0c3716bd34c9e3f601a23c4b9ab3d25ecd135d81a733a7119a4"
+    },
+    {
+      "name": "list_task_time_entries",
+      "source": "backend/app/Mcp/Tools/Task/ListTaskTimeEntriesTool.php",
+      "source_sha256": "6024d320b232c05edc6922ed25e9fc32735112f92752b68cd9bcd1607afe2aa6"
+    },
+    {
+      "name": "pause_crm_enrolment",
+      "source": "backend/app/Automation/Infrastructure/Mcp/SequenceBatch68/PauseCrmEnrolmentTool.php",
+      "source_sha256": "0a67bc15823b18d889c3d4297bab947c4cab6355c2c7fad02ede16a67ed3c426"
+    },
+    {
+      "name": "preview_crm_sequence",
+      "source": "backend/app/Automation/Infrastructure/Mcp/SequenceBatch68/PreviewCrmSequenceTool.php",
+      "source_sha256": "b7d45b76be5c93593e7904f34dcfaf6afe7aca9ea0367c1e112859397ad0b7e0"
+    },
+    {
+      "name": "recover_booking_service_receipt",
+      "source": "backend/app/Booking/Infrastructure/Mcp/RecoverBookingServiceReceiptTool.php",
+      "source_sha256": "b4119246b067e96f0c5ee27c968f666e9fab884eb724e38cd43345a19a59da0d"
+    },
+    {
+      "name": "resume_crm_enrolment",
+      "source": "backend/app/Automation/Infrastructure/Mcp/SequenceBatch68/ResumeCrmEnrolmentTool.php",
+      "source_sha256": "f4a928ea75f5b31218aa9fdfa1b5d3619ac0e55ddd43ebb83a303dff854dfa0e"
+    },
+    {
+      "name": "save_booking_service",
+      "source": "backend/app/Booking/Infrastructure/Mcp/SaveBookingServiceTool.php",
+      "source_sha256": "4124dab7cf4271267524e6100d283a2edb51639250809c1ff3c37f8370d3fe64"
+    },
+    {
+      "name": "save_crm_sequence",
+      "source": "backend/app/Automation/Infrastructure/Mcp/SequenceBatch68/SaveCrmSequenceTool.php",
+      "source_sha256": "7803345197a6bc17bc91ead7aa7eab366825ff3cd122c6df7fc8957367aeff24"
+    },
+    {
+      "name": "start_task_timer",
+      "source": "backend/app/Mcp/Tools/Task/StartTaskTimerTool.php",
+      "source_sha256": "d1a1a10c557f6185f157fa5ac385b907f02ff6dcb7f97d99ddf62e17a1293583"
+    },
+    {
+      "name": "stop_task_timer",
+      "source": "backend/app/Mcp/Tools/Task/StopTaskTimerTool.php",
+      "source_sha256": "25afab81555727ef9fd1086cb69a7d3f4ed45f2083427ed28ae43b50e1fbd45f"
+    },
+    {
+      "name": "update_task_time_entry",
+      "source": "backend/app/Mcp/Tools/Task/UpdateTaskTimeEntryTool.php",
+      "source_sha256": "2e894f39fad2da9236d063276261a28e02ede1d31238590441a1f4addd887468"
+    }
+  ],
+  "upstream_comparison": {
+    "project": "BottleCRM",
+    "source": "docs/architecture/overview.md",
+    "declared_commit": "656aaa6c3362658b82a3a6043c9e97a88bb8b215",
+    "declared_sha256": "3fde4f983016cf2a33ac3384cb4efa8892ba1512a1182d76ed1049948fb066bb",
+    "revalidated_in_this_package": false,
+    "decision": "reference-only; no copied or translated BottleCRM units",
+    "reason": "The MCP OAuth/Company/Task/original-receipt contracts are native Factuarea; upstream ORM, Org identity and ADMIN grants are not implementations of them.",
+    "application_code_copied": false
+  },
+  "client_documentation": [
+    {
+      "url": "https://code.claude.com/docs/en/plugins",
+      "verified_on": "2026-10-10",
+      "use": "Standalone directory loading and plugin manifest/skill locations"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/plugin-marketplaces",
+      "verified_on": "2026-10-10",
+      "use": "Marketplace publication is a separate step, not performed"
+    }
+  ]
+}

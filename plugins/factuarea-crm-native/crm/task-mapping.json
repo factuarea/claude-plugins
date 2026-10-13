@@ -1,0 +1,121 @@
+{
+  "change": "crm-mcp-plugin-delivery",
+  "requirements": [
+    "CRM-085",
+    "CRM-144"
+  ],
+  "full_change_completed": false,
+  "source_delivery_only": true,
+  "tasks": [
+    {
+      "id": "1.1",
+      "status": "source-complete",
+      "paths": [
+        "crm/reconnaissance.md",
+        "crm/source-provenance.json"
+      ],
+      "limitation": "Client/server runtime compatibility is unverified and recorded explicitly."
+    },
+    {
+      "id": "1.2",
+      "status": "pending",
+      "reason": "Upstream snapshot/function-to-case revalidation and main change evidence outside this lease."
+    },
+    {
+      "id": "1.3",
+      "status": "partial-source",
+      "paths": [
+        "skills",
+        "tests/discovery-contract.test.mjs"
+      ],
+      "reason": "Native consumer implementation for three authorized areas; original complete CRM adaptation not asserted."
+    },
+    {
+      "id": "2.1",
+      "status": "partial-source",
+      "paths": [
+        "plugin-contract.json"
+      ],
+      "reason": "Three native areas inventoried; SSH-CRM-006/008 and live server/version compatibility not executed."
+    },
+    {
+      "id": "2.2",
+      "status": "source-complete",
+      "paths": [
+        "plugin.json",
+        ".claude-plugin/plugin.json",
+        ".mcp.json",
+        "mcp.json",
+        "README.md"
+      ],
+      "limitation": "Self-contained package/config only; installation/consent not executed."
+    },
+    {
+      "id": "2.3",
+      "status": "source-complete",
+      "paths": [
+        "skills/crm-native/SKILL.md",
+        "skills/crm-native/references/operating-contract.md",
+        "skills/crm-sequences/SKILL.md",
+        "skills/crm-bookings/SKILL.md",
+        "skills/crm-task-time/SKILL.md"
+      ],
+      "limitation": "Explore/prepare/human-confirm/current-scope flow with native fields and citations; runtime and broader CRM availability not asserted."
+    },
+    {
+      "id": "2.4",
+      "status": "pending",
+      "paths": [
+        "examples/journey.md"
+      ],
+      "reason": "Three authorized-area recipes delivered, not the literal lead-opportunity-activity installation journey."
+    },
+    {
+      "id": "2.5",
+      "status": "prepared-not-run",
+      "paths": [
+        "tests/discovery-contract.test.mjs",
+        "tests/discovery-fixture.schema.json"
+      ],
+      "reason": "Real authenticated discovery/call harness requires actual sandbox fixtures, read/write grants, Companies A/B and unavailable provider."
+    },
+    {
+      "id": "2.6",
+      "status": "source-complete",
+      "paths": [
+        "README.md"
+      ],
+      "limitation": "Installation/update/revoke/OAuth/scopes/effect limits documented with executed-vs-pending evidence; client installation not executed."
+    },
+    {
+      "id": "2.7",
+      "status": "pending",
+      "reason": "Main-app external capability evidence and installed recipe outside lease."
+    },
+    {
+      "id": "3.1",
+      "status": "pending",
+      "reason": "Release evidence requires actual installation/API version/runtime compatibility."
+    },
+    {
+      "id": "4.1",
+      "status": "pending",
+      "reason": "Live application/API/MCP suites and gates not authorized or executed."
+    },
+    {
+      "id": "4.2",
+      "status": "pending",
+      "reason": "Dependencies/recovery/runtime/release readiness still require Root qualification."
+    },
+    {
+      "id": "4.3",
+      "status": "pending",
+      "reason": "No competitive runtime verification performed."
+    },
+    {
+      "id": "4.4",
+      "status": "pending",
+      "reason": "Upstream executed matrix and release evidence not performed."
+    }
+  ]
+}

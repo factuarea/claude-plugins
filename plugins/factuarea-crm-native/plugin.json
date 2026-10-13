@@ -1,0 +1,21 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "factuarea-crm-native",
+  "version": "0.2.0",
+  "description": "Source recipes for native Factuarea CRM: lead to opportunity to activity, sequences, booking administration and canonical Task time. Requires current authenticated discovery and permissions.",
+  "author": {
+    "name": "Factuarea"
+  },
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Factuarea CRM Native",
+        "shortDescription": "CRM workflows with receipts",
+        "longDescription": "Source recipes for native Factuarea CRM: lead to opportunity to activity, sequences, booking administration and canonical Task time. Requires current authenticated discovery and permissions; packaging does not enable CRM capabilities.",
+        "developerName": "Factuarea",
+        "category": "Productivity",
+        "defaultPrompt": "Consulta el CRM con permisos actuales; prepara el cambio y confirma el efecto con su recibo nativo."
+      }
+    }
+  }
+}

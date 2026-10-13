@@ -20,5 +20,5 @@ for entry in marketplace['plugins']:
         count += 1
     for config in package.glob('.*.json'):
         json.loads(config.read_text())
-assert count == 6, f'Expected all six existing skills, found {count}'
+assert count == 11, f'Expected six existing skills and five native CRM skills, found {count}'
 print(f'Validated {len(marketplace["plugins"])} plugins and {count} skills')

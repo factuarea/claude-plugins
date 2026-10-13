@@ -58,6 +58,30 @@
         "spain"
       ],
       "category": "productivity"
+    },
+    {
+      "name": "factuarea-crm-native",
+      "source": "./plugins/factuarea-crm-native",
+      "description": "Source recipes for native Factuarea CRM: lead to opportunity to activity, sequences, booking administration and canonical Task time. Requires current authenticated discovery and permissions; this catalog entry does not enable CRM capabilities.",
+      "version": "0.2.0",
+      "author": {
+        "name": "Factuarea",
+        "email": "info@factuarea.com"
+      },
+      "homepage": "https://docs.factuarea.com/mcp",
+      "repository": "https://github.com/factuarea/claude-plugins",
+      "license": "MIT",
+      "keywords": [
+        "factuarea",
+        "crm",
+        "mcp",
+        "oauth",
+        "commercial-journey",
+        "sequences",
+        "booking",
+        "task-time"
+      ],
+      "category": "productivity"
     }
   ]
 }

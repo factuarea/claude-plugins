@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Private actual native sandbox fixture; contains env names, never token values",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "operator_authorized",
+    "sandbox_context_verified",
+    "protocol_version",
+    "company_a_read",
+    "company_a_write",
+    "company_b_read",
+    "read_call",
+    "write_tool",
+    "denied_write_call",
+    "denied_write_failure",
+    "cross_company_failure",
+    "provider_unavailable"
+  ],
+  "properties": {
+    "operator_authorized": {
+      "const": true
+    },
+    "sandbox_context_verified": {
+      "const": true
+    },
+    "protocol_version": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "company_a_read": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "token_env",
+        "native_context_evidence"
+      ],
+      "properties": {
+        "token_env": {
+          "type": "string",
+          "pattern": "^FACTUAREA_CRM_[A-Z0-9_]+_TOKEN$"
+        },
+        "native_context_evidence": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "company_a_write": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "token_env",
+        "native_context_evidence"
+      ],
+      "properties": {
+        "token_env": {
+          "type": "string",
+          "pattern": "^FACTUAREA_CRM_[A-Z0-9_]+_TOKEN$"
+        },
+        "native_context_evidence": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "company_b_read": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "token_env",
+        "native_context_evidence"
+      ],
+      "properties": {
+        "token_env": {
+          "type": "string",
+          "pattern": "^FACTUAREA_CRM_[A-Z0-9_]+_TOKEN$"
+        },
+        "native_context_evidence": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "read_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "arguments",
+        "expected_id"
+      ],
+      "properties": {
+        "name": {
+          "enum": [
+            "get_booking_service",
+            "get_task_time_entry"
+          ]
+        },
+        "arguments": {
+          "type": "object"
+        },
+        "expected_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      }
+    },
+    "write_tool": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]+$"
+    },
+    "denied_write_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "arguments"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]+$"
+        },
+        "arguments": {
+          "type": "object"
+        }
+      }
+    },
+    "denied_write_failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "native_error_marker"
+      ],
+      "properties": {
+        "native_error_marker": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Exact typed native authorization/unavailable error marker from the actual server contract, not a validation error."
+        }
+      }
+    },
+    "cross_company_failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "native_error_marker"
+      ],
+      "properties": {
+        "native_error_marker": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Exact typed native authorization/unavailable error marker from the actual server contract, not a validation error."
+        }
+      }
+    },
+    "provider_unavailable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "call",
+        "failure",
+        "native_provider_evidence"
+      ],
+      "properties": {
+        "call": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "arguments"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]+$"
+            },
+            "arguments": {
+              "type": "object"
+            }
+          }
+        },
+        "failure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "native_error_marker"
+          ],
+          "properties": {
+            "native_error_marker": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Exact typed native authorization/unavailable error marker from the actual server contract, not a validation error."
+            }
+          }
+        },
+        "native_provider_evidence": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
