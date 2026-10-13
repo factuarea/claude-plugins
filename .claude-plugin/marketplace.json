@@ -10,7 +10,7 @@
     {
       "name": "factuarea-mcp",
       "source": "./plugins/factuarea-mcp",
-      "description": "Connects Claude Code to the Factuarea MCP server: invoicing, quotes, clients, suppliers, products, VeriFactu and webhooks for Spanish businesses, exposed as tools over OAuth or an API key.",
+      "description": "Connects Claude Code to the Factuarea MCP server over OAuth or an API key for invoicing and native CRM workflows, using currently available tools and schemas.",
       "version": "0.1.2",
       "author": {
         "name": "Factuarea",
@@ -27,7 +27,8 @@
         "verifactu",
         "facturae",
         "spain",
-        "oauth"
+        "oauth",
+        "crm"
       ],
       "category": "productivity"
     },

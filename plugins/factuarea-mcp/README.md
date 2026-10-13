@@ -10,8 +10,9 @@ The plugin ships two things:
 
 - the **MCP server** declaration (`https://mcp.factuarea.com`, HTTP
   transport), so Claude can call Factuarea tools directly; and
-- a **skill** that gives Claude the context to use them well — scopes, cursor
-  pagination, UUID v7 identity, the error envelope, and test (sandbox) mode.
+- **skills** that guide native operations — the existing MCP guide and the
+  [CRM workflow](docs/crm/README.md), with current discovery, schemas, UUIDs, CAS,
+  original intents and owner recovery.
 
 ## Install
 
@@ -31,7 +32,7 @@ The plugin declares the server **without an auth header**, so the recommended
 path is OAuth:
 
 1. Run `/mcp`, pick **factuarea**, choose **Authenticate**.
-2. Approve in the browser — Dynamic Client Registration + PKCE are automatic. On
+2. Approve in the browser — the host negotiates the supported OAuth flow. On
    the consent screen you **select the company and the environment** (live or
    test) and the scopes to grant.
 
@@ -57,6 +58,15 @@ guide those calls; you can also invoke it manually:
 ```text
 /factuarea-mcp:factuarea-mcp
 ```
+
+## Native CRM source
+
+The [CRM guide](docs/crm/README.md) and `/factuarea-mcp:crm` command use the same
+Factuarea connection for visible native Lead, Opportunity, Activity, document
+and customer service tools. They refresh discovery, preserve current versions
+and stop on unavailable owners or uncertain effects. The addition is source in
+this checkout; installed-host OAuth and native sandbox proof remain pending,
+and an older released marketplace version may not include it.
 
 ## What the skill knows
 

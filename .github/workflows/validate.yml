@@ -14,3 +14,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python scripts/validate_plugins.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test plugins/factuarea-mcp/tests/crm/crm-session.test.mjs plugins/factuarea-mcp/tests/crm/crm-journey.test.mjs

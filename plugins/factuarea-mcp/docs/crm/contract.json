@@ -1,0 +1,202 @@
+{
+  "format_version": 1,
+  "plugin": "factuarea-mcp",
+  "baseline_plugin_version": "0.1.2",
+  "crm_delivery": "unreleased source",
+  "server": "factuarea",
+  "connection": "existing plugin .mcp.json; host-managed OAuth",
+  "catalogue_authority": "complete current server tools/list; examples never grant availability",
+  "request_contract": "current native inputSchema; no translation or added authority",
+  "discovery": {
+    "cursor_field": "nextCursor",
+    "request_cursor_field": "cursor",
+    "empty_page_can_continue": true,
+    "duplicate_names": "deduplicate identical descriptors; reject conflicting descriptors",
+    "invalidation": [
+      "reconnect",
+      "tools/list_changed",
+      "company/environment change",
+      "consent or policy change"
+    ],
+    "partial_inventory": "unavailable for preparation"
+  },
+  "operation_examples": [
+    {
+      "name": "list_commercial_documents",
+      "fine_scope_example": "crm_documents:read",
+      "oauth_scope_example": "crm_documents.read",
+      "native_operation": "crm_documents.list",
+      "availability": "only current discovery and native owner authorization",
+      "read_only_example": true
+    },
+    {
+      "name": "get_commercial_document",
+      "fine_scope_example": "crm_documents:read",
+      "oauth_scope_example": "crm_documents.read",
+      "native_operation": "crm_documents.get",
+      "availability": "only current discovery and native owner authorization",
+      "read_only_example": true
+    },
+    {
+      "name": "upload_commercial_document",
+      "fine_scope_example": "crm_documents:write",
+      "oauth_scope_example": "crm_documents.write",
+      "native_operation": "crm_documents.upload",
+      "availability": "only current discovery and native owner authorization",
+      "read_only_example": false
+    },
+    {
+      "name": "replace_commercial_document_version",
+      "fine_scope_example": "crm_documents:write",
+      "oauth_scope_example": "crm_documents.write",
+      "native_operation": "crm_documents.replace_version",
+      "availability": "only current discovery and native owner authorization",
+      "read_only_example": false
+    },
+    {
+      "name": "share_commercial_document",
+      "fine_scope_example": "crm_documents:write",
+      "oauth_scope_example": "crm_documents.write",
+      "native_operation": "crm_documents.share",
+      "availability": "only current discovery and native owner authorization",
+      "read_only_example": false
+    },
+    {
+      "name": "revoke_commercial_document_share",
+      "fine_scope_example": "crm_documents:write",
+      "oauth_scope_example": "crm_documents.write",
+      "native_operation": "crm_documents.revoke_share",
+      "availability": "only current discovery and native owner authorization",
+      "read_only_example": false
+    },
+    {
+      "name": "archive_commercial_document",
+      "fine_scope_example": "crm_documents:write",
+      "oauth_scope_example": "crm_documents.write",
+      "native_operation": "crm_documents.archive",
+      "availability": "only current discovery and native owner authorization",
+      "read_only_example": false
+    },
+    {
+      "name": "list_opportunity_documents",
+      "fine_scope_example": "crm_opportunitydocuments:read",
+      "oauth_scope_example": "crm_opportunitydocuments.read",
+      "native_operation": "crm_opportunitydocuments.list",
+      "availability": "only current discovery and native owner authorization",
+      "read_only_example": true
+    },
+    {
+      "name": "list_opportunity_document_candidates",
+      "fine_scope_example": "crm_opportunitydocuments:read",
+      "oauth_scope_example": "crm_opportunitydocuments.read",
+      "native_operation": "crm_opportunitydocuments.candidates",
+      "availability": "only current discovery and native owner authorization",
+      "read_only_example": true
+    },
+    {
+      "name": "get_opportunity_financial_summary",
+      "fine_scope_example": "crm_opportunitydocuments:read",
+      "oauth_scope_example": "crm_opportunitydocuments.read",
+      "native_operation": "crm_opportunitydocuments.financial_summary",
+      "availability": "only current discovery and native owner authorization",
+      "read_only_example": true
+    },
+    {
+      "name": "create_opportunity_quote",
+      "fine_scope_example": "crm_opportunitydocuments:write",
+      "oauth_scope_example": "crm_opportunitydocuments.write",
+      "native_operation": "crm_opportunitydocuments.create_quote",
+      "availability": "only current discovery and native owner authorization",
+      "read_only_example": false
+    },
+    {
+      "name": "link_opportunity_document",
+      "fine_scope_example": "crm_opportunitydocuments:write",
+      "oauth_scope_example": "crm_opportunitydocuments.write",
+      "native_operation": "crm_opportunitydocuments.link_document",
+      "availability": "only current discovery and native owner authorization",
+      "read_only_example": false
+    },
+    {
+      "name": "unlink_opportunity_document",
+      "fine_scope_example": "crm_opportunitydocuments:write",
+      "oauth_scope_example": "crm_opportunitydocuments.write",
+      "native_operation": "crm_opportunitydocuments.unlink_document",
+      "availability": "only current discovery and native owner authorization",
+      "read_only_example": false
+    },
+    {
+      "name": "move_service_ticket_to_stage",
+      "fine_scope_example": "customer_service:write",
+      "oauth_scope_example": "customer_service.write",
+      "native_operation": "customer_service.move_to_stage",
+      "availability": "only current discovery and native owner authorization",
+      "read_only_example": false
+    },
+    {
+      "name": "attach_service_ticket_document",
+      "fine_scope_example": "customer_service:write",
+      "oauth_scope_example": "customer_service.write",
+      "native_operation": "customer_service.attach_document",
+      "availability": "only current discovery and native owner authorization",
+      "read_only_example": false
+    },
+    {
+      "name": "detach_service_ticket_document",
+      "fine_scope_example": "customer_service:write",
+      "oauth_scope_example": "customer_service.write",
+      "native_operation": "customer_service.detach_document",
+      "availability": "only current discovery and native owner authorization",
+      "read_only_example": false
+    }
+  ],
+  "journey_examples": [
+    {
+      "name": "create_lead",
+      "fine_scope_example": "crm_leads:write",
+      "oauth_scope_example": "crm_leads.write",
+      "availability": "only when currently discovered and owner available"
+    },
+    {
+      "name": "find_lead",
+      "fine_scope_example": "crm_leads:read",
+      "oauth_scope_example": "crm_leads.read",
+      "availability": "only when currently discovered and owner available"
+    },
+    {
+      "name": "create_opportunity",
+      "fine_scope_example": "crm_opportunities:write",
+      "oauth_scope_example": "crm_opportunities.write",
+      "availability": "only when currently discovered and owner available"
+    },
+    {
+      "name": "get_opportunity",
+      "fine_scope_example": "crm_opportunities:read",
+      "oauth_scope_example": "crm_opportunities.read",
+      "availability": "only when currently discovered and owner available"
+    },
+    {
+      "name": "list_opportunities",
+      "fine_scope_example": "crm_opportunities:read",
+      "oauth_scope_example": "crm_opportunities.read",
+      "availability": "only when currently discovered and owner available"
+    },
+    {
+      "name": "create_crm_activity",
+      "fine_scope_example": "crm_activities:write",
+      "oauth_scope_example": "crm_activities.write",
+      "availability": "only when currently discovered and owner available"
+    },
+    {
+      "name": "get_crm_activity",
+      "fine_scope_example": "crm_activities:read",
+      "oauth_scope_example": "crm_activities.read",
+      "availability": "only when currently discovered and owner available"
+    }
+  ],
+  "excluded_lead_aliases": [
+    "create_client"
+  ],
+  "recovery": "original native intent, payload and references; no automatic redispatch or invented confirmation",
+  "host_verification": "pending real authorized host OAuth, native tenant isolation and prefiscal journey; fixtures are local only"
+}

@@ -9,7 +9,7 @@ and webhooks).
 
 | Plugin | For | What it does |
 | --- | --- | --- |
-| [`factuarea-mcp`](./plugins/factuarea-mcp) | **Running your business** | Connects Claude Code to the **Factuarea MCP server** (`https://mcp.factuarea.com`) so Claude can call Factuarea tools directly — search/create/send invoices, manage clients, check VeriFactu, configure webhooks. Authenticate via OAuth or an API-key header. One skill, on using those tools well |
+| [`factuarea-mcp`](./plugins/factuarea-mcp) | **Running your business** | Connects Claude Code to the **Factuarea MCP server** (`https://mcp.factuarea.com`) so Claude can call Factuarea tools directly — search/create/send invoices, manage clients, check VeriFactu, configure webhooks. Authenticate via OAuth or an API-key header. Skills for using those tools and native CRM workflows well |
 | [`factuarea-api`](./plugins/factuarea-api) | **Building the integration** | Five developer skills for the code you write in your own repository: where to start, the official TypeScript and PHP SDKs, webhook receivers, auditing an existing integration, and realigning it after a contract or SDK change. **Declares no MCP server** |
 
 They are **complementary, not alternatives**.
@@ -48,7 +48,7 @@ The plugin declares the server **without an auth header**, so the recommended
 path is OAuth:
 
 1. Run `/mcp`, pick **factuarea**, choose **Authenticate**.
-2. Approve in the browser — Dynamic Client Registration + PKCE are automatic. On
+2. Approve in the browser — the host negotiates the supported OAuth flow. On
    the consent screen you **select the company and the environment** (live or
    test) and the scopes to grant.
 
@@ -80,6 +80,14 @@ Its skill covers:
   violations, `429` with `Retry-After`.
 - **Test mode** — the `fact_test_` prefix / test OAuth grant points at an
   isolated sandbox with external effects switched off.
+
+### Native CRM workflow
+
+The [CRM source guide](plugins/factuarea-mcp/docs/crm/README.md) adds the
+`factuarea-crm` skill and `/factuarea-mcp:crm` command to the existing MCP plugin.
+They use its single Factuarea connection and current native discovery for Lead,
+Opportunity, Activity, documents and customer service. Source checks do not
+certify installed-host OAuth, tenant access or a native commercial effect.
 
 ## `factuarea-api` — build the integration
 
