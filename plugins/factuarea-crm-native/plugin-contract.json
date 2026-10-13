@@ -1,0 +1,176 @@
+{
+  "contract_version": 1,
+  "package": "factuarea-crm-native",
+  "package_version": "0.2.0",
+  "surface": "MCP",
+  "server": {
+    "name": "factuarea",
+    "url": "https://mcp.factuarea.com",
+    "transport": "streamable-http",
+    "authentication": [
+      "host-managed-oauth",
+      "bearer-api-key"
+    ],
+    "company_context": "native-consent-or-current-credential",
+    "protocol": {
+      "current": "2026-07-28",
+      "legacy": [
+        "2025-11-25",
+        "2025-06-18"
+      ],
+      "live_compatibility_verified": false,
+      "server_version": null
+    }
+  },
+  "discovery": {
+    "authority": "current-authenticated-tools-list",
+    "missing_tool": "unavailable",
+    "input_schema": "use-native-schema-unchanged",
+    "scope_policy": "server-must-check-current-grants-on-discovery-and-call",
+    "tenant_context": "derived-from-current-credential",
+    "caller_selects_company": false
+  },
+  "delivery_state": "source-only-live-installation-and-discovery-not-verified",
+  "tools": [
+    {
+      "name": "create_crm_activity",
+      "area": "commercial-journey",
+      "scope": "crm_activities:write",
+      "category": "WRITE",
+      "operation": "crm_activities.create",
+      "required_arguments": [
+        "type",
+        "title",
+        "target",
+        "timezone",
+        "idempotency_key"
+      ],
+      "optional_arguments": [
+        "body",
+        "owner_id",
+        "due_at"
+      ]
+    },
+    {
+      "name": "create_lead",
+      "area": "commercial-journey",
+      "scope": "crm_leads:write",
+      "category": "WRITE",
+      "operation": "crm_leads.create",
+      "required_arguments": [],
+      "optional_arguments": [
+        "id",
+        "name",
+        "email",
+        "phone",
+        "mobile",
+        "company_name",
+        "notes",
+        "address",
+        "metadata",
+        "estimated_value",
+        "typed_fields",
+        "source",
+        "owner_id",
+        "team_id",
+        "idempotency_key"
+      ]
+    },
+    {
+      "name": "create_opportunity",
+      "area": "commercial-journey",
+      "scope": "crm_opportunities:write",
+      "category": "WRITE",
+      "operation": "crm_opportunities.create",
+      "required_arguments": [
+        "title",
+        "pipeline_id",
+        "stage_id",
+        "amount",
+        "currency"
+      ],
+      "optional_arguments": [
+        "lead_id",
+        "contact_id",
+        "owner_id",
+        "team_id",
+        "idempotency_key"
+      ]
+    },
+    {
+      "name": "find_lead",
+      "area": "commercial-journey",
+      "scope": "crm_leads:read",
+      "category": "READ",
+      "operation": "crm_leads.show",
+      "required_arguments": [
+        "id"
+      ],
+      "optional_arguments": []
+    },
+    {
+      "name": "get_crm_activity",
+      "area": "commercial-journey",
+      "scope": "crm_activities:read",
+      "category": "READ",
+      "operation": "crm_activities.show",
+      "required_arguments": [
+        "id"
+      ],
+      "optional_arguments": []
+    },
+    {
+      "name": "get_opportunity",
+      "area": "commercial-journey",
+      "scope": "crm_opportunities:read",
+      "category": "READ",
+      "operation": "crm_opportunities.show",
+      "required_arguments": [
+        "id"
+      ],
+      "optional_arguments": []
+    },
+    {
+      "name": "get_pipeline",
+      "area": "commercial-journey",
+      "scope": "crm_pipelines:read",
+      "category": "READ",
+      "operation": "crm_pipelines.show",
+      "required_arguments": [
+        "id"
+      ],
+      "optional_arguments": [
+        "include_archived"
+      ]
+    },
+    {
+      "name": "list_crm_activities",
+      "area": "commercial-journey",
+      "scope": "crm_activities:read",
+      "category": "READ",
+      "operation": "crm_activities.index",
+      "required_arguments": [],
+      "optional_arguments": [
+        "filters",
+        "cursor",
+        "limit"
+      ]
+    },
+    {
+      "name": "list_pipelines",
+      "area": "commercial-journey",
+      "scope": "crm_pipelines:read",
+      "category": "READ",
+      "operation": "crm_pipelines.index",
+      "required_arguments": [],
+      "optional_arguments": [
+        "search",
+        "status",
+        "team_id",
+        "sort",
+        "cursor",
+        "limit"
+      ]
+    }
+  ]
+}
