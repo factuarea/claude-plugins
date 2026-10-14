@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "factuarea-mcp",
-  "description": "Connects Claude Code to the Factuarea MCP server: invoicing, quotes, clients, suppliers, products, tasks and projects, VeriFactu and webhooks for Spanish businesses, exposed as tools over OAuth or an API key.",
-  "version": "0.1.6",
+  "description": "Connects Claude Code to the Factuarea MCP server: invoicing, quotes, clients, suppliers, products, transport control documents (DeCA), tasks and projects, VeriFactu and webhooks for Spanish businesses, exposed as tools over OAuth or an API key.",
+  "version": "0.1.7",
   "author": {
     "name": "Factuarea",
     "email": "info@factuarea.com",
@@ -20,6 +20,7 @@
     "facturae",
     "tasks",
     "projects",
+    "deca",
     "spain",
     "oauth"
   ]

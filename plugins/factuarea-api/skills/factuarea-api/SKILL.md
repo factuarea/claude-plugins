@@ -7,9 +7,10 @@ description: Entry point for building on the Factuarea public API — invoicing,
 
 Factuarea is a multi-tenant invoicing SaaS for Spanish businesses. Its public
 API (`https://api.factuarea.com/v1`) covers invoices, quotes, pro-formas,
-delivery notes, recurring invoices and expenses, the purchase scanner
-(`purchase_scans`), clients, suppliers, products, document series, taxes,
-VeriFactu (AEAT) and webhooks.
+delivery notes, transport control documents (DeCA, `transport_documents`),
+recurring invoices and expenses, the purchase scanner (`purchase_scans`),
+clients, suppliers, products, document series, taxes, VeriFactu (AEAT) and
+webhooks.
 
 This skill is the **orientation layer**: the rules that hold everywhere, how to
 look anything up, and who takes it from here. It deliberately does not repeat
