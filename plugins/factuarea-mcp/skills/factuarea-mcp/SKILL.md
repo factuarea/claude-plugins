@@ -1,6 +1,6 @@
 ---
 name: factuarea-mcp
-description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, recurring invoices & expenses, contacts (customers and suppliers), products, price lists, document series, taxes, VeriFactu (AEAT), FacturaE, tax reports, time tracking, tasks and projects, automations and webhooks for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their business data — search/create/send invoices, manage contacts, follow tasks and projects, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, the error envelope, and test (sandbox) mode.
+description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, transport control documents (DeCA), recurring invoices & expenses, contacts (customers and suppliers), products, price lists, document series, taxes, VeriFactu (AEAT), FacturaE, tax reports, time tracking, tasks and projects, automations and webhooks for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their business data — search/create/send invoices, manage contacts, issue the DeCA for a road freight transport, follow tasks and projects, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, the error envelope, and test (sandbox) mode.
 ---
 
 # Factuarea MCP server
@@ -107,10 +107,10 @@ Resource names such as `purchase_invoices`, scopes, event IDs, tool names, SDK
 methods and routes stay unchanged. Never invent an `expenses` resource or rename
 a tool to match a display label.
 
-## Tool domains (35)
+## Tool domains (36)
 
 Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_contact`,
-`mark_invoice_as_paid`). The catalog covers 35 domains; † marks owner-only
+`mark_invoice_as_paid`). The catalog covers 36 domains; † marks owner-only
 (API key) scopes:
 
 | Domain | Scopes |
@@ -122,6 +122,7 @@ Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_contact`,
 | Quotes | `quotes:read` · `quotes:write` · `quotes:send` · `quotes:transition` · `quotes:delete` |
 | Pro-forma invoices | `proformas:read` · `proformas:write` · `proformas:send` · `proformas:transition` · `proformas:delete` |
 | Delivery notes | `delivery_notes:read` · `delivery_notes:write` · `delivery_notes:transition` · `delivery_notes:delete` · `delivery_notes:gdpr_forget` † |
+| Transport control documents (DeCA) | `transport_documents:read` · `transport_documents:write` (drafts and the email to the carrier) · `transport_documents:delete` (drafts only) · `transport_documents:transition` (issue, modify, close, reopen, cancel, supersede); `get_transport_document_pdf` uses `pdfs:read` |
 | Expenses | `purchase_invoices:read` · `purchase_invoices:write` · `purchase_invoices:transition` · `purchase_invoices:delete` |
 | Recurring invoices | `recurring_invoices:read` · `recurring_invoices:write` · `recurring_invoices:transition` · `recurring_invoices:delete` |
 | Series | `series:read` · `series:write` (`update_series` edits a series under the fiscal guards of the numbering: the code and mask are fixed once documents exist, the purpose once it has an invoice, and all numbering fields lock when the AEAT accepts a record; a series is never deleted, archive it) |
@@ -156,6 +157,67 @@ activity/event logs use `events:read`.
 The counts above are a snapshot and the catalog grows. **Discover the tools at
 runtime with `tools/list`**: it is the authoritative list for the current
 session, and a tool missing from this table is not missing from the server.
+
+### Transport control documents (DeCA)
+
+The DeCA (*documento de control*) is the Spanish electronic administrative
+control document of public road freight transport, national or cabotage, with
+origin and destination in Spain (Orden FOM/2861/2012). It identifies the
+parties, shipments, goods, vehicle and dates, and travels with the driver as a
+PDF whose QR code opens a permanent public URL. It is **not a delivery note, an
+invoice or a VeriFactu record**: it can be pre-filled from delivery notes but
+never changes their numbering, stock or invoicing. It is not required in private
+complementary transport (own vehicles and drivers), parcel delivery of a few
+packages, removals, damaged or broken-down vehicles carried in special vehicles,
+or transport that needs no prior authorisation. Each DeCA declares the
+company's role in `company_role`: `shipper` (contractual shipper) or `carrier`
+(effective carrier).
+
+Its tools need the `transport_documents` module (Documentos de control), which
+requires the Delivery notes module and comes with the same plans: Profesional,
+Avanzado and Enterprise. All four scopes can be granted over OAuth;
+`transport_documents:delete` and `transport_documents:transition` are shown
+with a warning and not pre-checked.
+
+Statuses: `draft` → `issued` → `closed`, by hand or automatically 7 days after
+the last transport date. A manual close can be reopened back to `issued` before
+that deadline; an automatic one cannot. `cancelled` and `superseded` are
+terminal. Modifying keeps the DeCA `issued` with a new version under the same
+number, URL and QR.
+
+1. **Find** — `search_transport_documents` (filters `status`, transport dates,
+   `company_role`, `carrier_tax_id`, `delivery_note_id`, `q`),
+   `get_transport_document`, `get_transport_document_statuses`.
+2. **Draft** — `create_transport_document` (only `company_role` is required;
+   `delivery_note_ids` adds one shipment per delivery note),
+   `update_transport_document`, `delete_transport_document` (drafts only: an
+   issued DeCA is never deleted).
+3. **Issue** — `issue_transport_document` assigns the next number of the `DC`
+   series, the public URL with its QR and version 1 of the PDF. It needs the
+   shipper (name, tax ID and address), the carrier (name and tax ID), the
+   tractor plate and, in every shipment, origin, destination, goods, measure and
+   a transport date of today or later (Madrid time). A `422` lists what is
+   missing in `error.details.missing`.
+4. **Hand the copy to the driver** — `send_transport_document` emails the PDF
+   and the URL (up to 5 recipients; without `to`, the carrier contact), or share
+   the URL from `get_transport_document_pdf` (URL and metadata, never the bytes).
+5. **During the service** — `modify_transport_document` (only what changes, plus
+   `reason` and `data_origin`: `company` or `carrier_reported`; the parties never
+   change, so cancel and issue a new one), `close_transport_document`,
+   `reopen_transport_document` (with `reason`).
+6. **End it** — `cancel_transport_document` (with `reason`), or
+   `supersede_transport_document` when the carrier's own DeCA replaces it (with
+   `reference` and `reason`). `get_transport_document_evidence` returns the
+   issuance evidence, the proof of having issued it.
+
+**Always ask the user to confirm before calling `issue_transport_document`,
+`modify_transport_document`, `cancel_transport_document`,
+`supersede_transport_document` or `send_transport_document`**, stating which
+DeCA and what will happen: they are irreversible (a number consumed, a version
+published, a terminal state, an email sent). Pass an `idempotency_key` and reuse
+it on a retry so the effect does not happen twice. The QR image and the
+proof-of-issuance PDF are REST-only downloads, and loading places are managed in
+the app. Guide: <https://docs.factuarea.com/guides/transport-documents>.
 
 ### Purchase scanner flow
 
