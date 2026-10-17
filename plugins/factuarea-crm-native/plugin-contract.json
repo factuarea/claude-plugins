@@ -1,0 +1,161 @@
+{
+  "contract_version": 1,
+  "package": "factuarea-crm-native",
+  "package_version": "0.2.0",
+  "surface": "MCP",
+  "server": {
+    "name": "factuarea",
+    "url": "https://mcp.factuarea.com",
+    "transport": "streamable-http",
+    "authentication": [
+      "existing-server-oauth",
+      "bearer-api-key"
+    ],
+    "company_context": "native-consent-or-current-credential",
+    "production_enabled_by_package": false,
+    "compatibility": {
+      "source_adapter_protocol_versions": [
+        "2025-11-25",
+        "2025-06-18"
+      ],
+      "modern_protocol_supported_by_backend": "2026-07-28",
+      "modern_protocol_supported_by_this_adapter": false,
+      "live_discovery_verified": false,
+      "server_version": null
+    }
+  },
+  "discovery": {
+    "authority": "current-authenticated-tools-list",
+    "missing_tool": "unavailable",
+    "input_schema": "use-native-schema-unchanged",
+    "scope_policy": "server-rechecks-current-actor-tenant-plan-and-scope-on-every-call",
+    "tenant_context": "derived-from-native-consent-or-current-credential",
+    "caller_selects_company": false
+  },
+  "source": {
+    "contract_version": 1,
+    "package_version": "0.2.0",
+    "repository_baseline": "5aa26f14df729dbd8fac7e8017c1f94ed6f1b3d2",
+    "live_discovery_verified": false
+  },
+  "delivery_state": "source-only-live-installation-and-discovery-not-verified",
+  "tools": [
+    {
+      "name": "create_crm_activity",
+      "area": "commercial-journey",
+      "scope": "crm_activities:write",
+      "category": "WRITE",
+      "operation": "crm_activities.create",
+      "kind": "mutation",
+      "required_arguments": ["type", "title", "target", "timezone", "idempotency_key"],
+      "optional_arguments": ["body", "owner_id", "due_at"],
+      "confirmation": "human-review",
+      "source": "backend/app/CrmActivity/Infrastructure/Mcp/CreateCrmActivityTool.php",
+      "source_sha256": "5f983c6008eac5c6871ec3215171ab4153f7f716c92dcca0bdf3cc4b20cf0c17"
+    },
+    {
+      "name": "create_lead",
+      "area": "commercial-journey",
+      "scope": "crm_leads:write",
+      "category": "WRITE",
+      "operation": "crm_leads.create",
+      "kind": "mutation",
+      "required_arguments": [],
+      "optional_arguments": ["id", "name", "email", "phone", "mobile", "company_name", "notes", "address", "metadata", "estimated_value", "typed_fields", "source", "owner_id", "team_id", "idempotency_key"],
+      "confirmation": "human-review",
+      "source": "backend/app/Lead/Infrastructure/Mcp/CreateLeadTool.php",
+      "source_sha256": "77f59be0a61f81522d1d015e6978755eb5db7eb0295797b03a2581e15823d712"
+    },
+    {
+      "name": "create_opportunity",
+      "area": "commercial-journey",
+      "scope": "crm_opportunities:write",
+      "category": "WRITE",
+      "operation": "crm_opportunities.create",
+      "kind": "mutation",
+      "required_arguments": ["title", "pipeline_id", "stage_id", "amount", "currency"],
+      "optional_arguments": ["lead_id", "contact_id", "owner_id", "team_id", "idempotency_key"],
+      "confirmation": "human-review",
+      "source": "backend/app/Opportunity/Infrastructure/Mcp/CreateOpportunityTool.php",
+      "source_sha256": "65c52300ddbb138a4970d9ba677c0abf6b291ec65f7605f40a9af268b8d88f3e"
+    },
+    {
+      "name": "find_lead",
+      "area": "commercial-journey",
+      "scope": "crm_leads:read",
+      "category": "READ",
+      "operation": "crm_leads.show",
+      "kind": "query",
+      "required_arguments": ["id"],
+      "optional_arguments": [],
+      "confirmation": "none",
+      "source": "backend/app/Lead/Infrastructure/Mcp/FindLeadTool.php",
+      "source_sha256": "d50e29f1562e11636555fcca8ae0c4d83fb5947f9740060ca05c8d707cd0c367"
+    },
+    {
+      "name": "get_crm_activity",
+      "area": "commercial-journey",
+      "scope": "crm_activities:read",
+      "category": "READ",
+      "operation": "crm_activities.show",
+      "kind": "query",
+      "required_arguments": ["id"],
+      "optional_arguments": [],
+      "confirmation": "none",
+      "source": "backend/app/CrmActivity/Infrastructure/Mcp/GetCrmActivityTool.php",
+      "source_sha256": "547cc86ceed5699c739c8cc55eaea53d91d87a260260e8c6a88764566e78dd11"
+    },
+    {
+      "name": "get_opportunity",
+      "area": "commercial-journey",
+      "scope": "crm_opportunities:read",
+      "category": "READ",
+      "operation": "crm_opportunities.show",
+      "kind": "query",
+      "required_arguments": ["id"],
+      "optional_arguments": [],
+      "confirmation": "none",
+      "source": "backend/app/Opportunity/Infrastructure/Mcp/GetOpportunityTool.php",
+      "source_sha256": "e807b71b20b68d3e1eaade387dcc0df9d6ce268a8b259d473088afd884cdd776"
+    },
+    {
+      "name": "get_pipeline",
+      "area": "commercial-journey",
+      "scope": "crm_pipelines:read",
+      "category": "READ",
+      "operation": "crm_pipelines.show",
+      "kind": "query",
+      "required_arguments": ["id"],
+      "optional_arguments": ["include_archived"],
+      "confirmation": "none",
+      "source": "backend/app/Pipeline/Infrastructure/Mcp/GetPipelineTool.php",
+      "source_sha256": "4649768f296c2efd49480e84cc23541f54c05c5fdecf650eba46f657c5451a42"
+    },
+    {
+      "name": "list_crm_activities",
+      "area": "commercial-journey",
+      "scope": "crm_activities:read",
+      "category": "READ",
+      "operation": "crm_activities.index",
+      "kind": "query",
+      "required_arguments": [],
+      "optional_arguments": ["filters", "cursor", "limit"],
+      "confirmation": "none",
+      "source": "backend/app/CrmActivity/Infrastructure/Mcp/ListCrmActivitiesTool.php",
+      "source_sha256": "a81ebf75fb7268f50a7653c4333205d02e8abd65693b21bbb75de2ea59c82635"
+    },
+    {
+      "name": "list_pipelines",
+      "area": "commercial-journey",
+      "scope": "crm_pipelines:read",
+      "category": "READ",
+      "operation": "crm_pipelines.index",
+      "kind": "query",
+      "required_arguments": [],
+      "optional_arguments": ["search", "status", "team_id", "sort", "cursor", "limit"],
+      "confirmation": "none",
+      "source": "backend/app/Pipeline/Infrastructure/Mcp/ListPipelinesTool.php",
+      "source_sha256": "2661eff64d26d7acd9078bf974857ae05801d404f51ac3172ee28684b61ee18a"
+    }
+  ]
+}
