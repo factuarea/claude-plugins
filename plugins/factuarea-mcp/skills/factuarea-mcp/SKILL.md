@@ -1,6 +1,6 @@
 ---
 name: factuarea-mcp
-description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, recurring & purchase invoices, contacts (customers and suppliers are roles of one contact), products, price lists, document series, taxes, VeriFactu (AEAT), tasks and projects, and webhooks for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their accounting data — search/create/send invoices, manage contacts, follow tasks and projects, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, the error envelope, and test (sandbox) mode.
+description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, transport control documents (DeCA), recurring & purchase invoices, contacts (customers and suppliers are roles of one contact), products, price lists, document series, taxes, VeriFactu (AEAT), tasks and projects, and webhooks for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their accounting data — search/create/send invoices, manage contacts, issue the DeCA for a road freight transport, follow tasks and projects, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, the error envelope, and test (sandbox) mode.
 ---
 
 # Factuarea MCP server
@@ -61,23 +61,20 @@ The catalog is the same set of tools, but the two channels resolve a **different
 maximum reach**:
 
 - **API key (owner's own key, scope `*`)** → the whole catalog a `*` holder
-  sees, **586 tools**. The owner is acting on their own account, so the key can
-  cover everything, including the privileged operations below. Nine more tools
-  (managed accounts: provisioning, plan changes, ending a management) are
+  sees, **613 tools**. The owner is acting on their own account, so the key can
+  cover everything, including the privileged operations below. The managed-account
+  tools (provisioning, plan changes, ending a management) are
   **not** in that figure: they need the privileged scope `accounts:read` /
   `accounts:write`, which `*` does **not** cover, so they only appear for a key
   that carries `accounts:*`, granted by a superadmin. OAuth never grants it.
-- **OAuth (third-party app, curated scopes)** → **453 tools**. The remaining
-  **133** are unreachable by consent: the OAuth scope catalog has no dotted
+- **OAuth (third-party app, curated scopes)** → **489 tools**. The remaining
+  **124** are unreachable by consent: the OAuth scope catalog has no dotted
   scope that translates to them, so a third-party app can never reach them on
   the user's behalf. They fall into five groups:
-  - **Account and credential administration** — `account:write`, `account:owner`,
-    `nif_transfers:read`, `nif_transfers:write`, `invitations:read`,
-    `invitations:write`, `members:read`, `members:write`, `companies:read`,
-    `companies:write`, `companies:delete`, `developers:read`, plus the
-    privileged `accounts:read` / `accounts:write`. Who holds the keys to the
-    account, who sits in it, who owns it and which NIF moves to another account
-    is decided by the owner from their own dashboard or with their own key,
+  - **Account and credential administration** — `account:write`,
+    `companies:read`, `companies:write`, `companies:delete`, `developers:read`,
+    plus the privileged `accounts:read` / `accounts:write`. Who holds the keys
+    to the account and which NIFs it has is decided by the owner from their own dashboard or with their own key,
     never by a delegated app.
     Account webhooks (`webhooks:*` at account level) and account request logs
     (`developers:read`) are the same: **API key only**.
@@ -119,8 +116,8 @@ Resource names such as `purchase_invoices`, scopes, event IDs, tool names, SDK
 methods and routes stay unchanged. Never invent an `expenses` resource or rename
 a tool to match a display label.
 
-So an OAuth session with read-only scopes on an emprendedor plan will list far
-fewer than 453 tools — that's expected, not an error.
+So an OAuth session with read-only scopes on an Esencial (`emprendedor`) plan will list far
+fewer than 489 tools — that's expected, not an error.
 
 ## Tool domains (39)
 
@@ -129,42 +126,42 @@ Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_contact`,
 **OAuth** is what a consent grant can reach (`all` when the whole domain is
 reachable).
 
-The catalog is **586 tools** across **39 domains**, of which **453** are
-reachable by an OAuth consent grant and **133** are API-key only. Privileged
-`accounts:*` tools (9, managed accounts) are outside these figures: only a
+The catalog is **613 tools** across **39 domains**, of which **489** are
+reachable by an OAuth consent grant and **124** are API-key only. Privileged
+`accounts:*` tools (managed accounts) are outside these figures: only a
 credential with that scope sees them.
 
 | Domain | Tools | OAuth | Scopes |
 | --- | ---: | ---: | --- |
-| Tasks | 52 | 46 | `tasks:read` · `tasks:write` · `tasks:delete` *(API key only)* |
+| Tasks | 52 | 46 | `tasks:delete` *(API key only)* · `tasks:read` · `tasks:write` |
 | Invoices | 45 | all | `invoices:delete` · `invoices:read` · `invoices:send` · `invoices:void` · `invoices:write` · `pdfs:read` |
-| Products | 38 | all | `products:delete` · `products:read` · `products:write` |
+| Products | 40 | all | `products:delete` · `products:read` · `products:write` |
 | VeriFactu | 31 | 20 | `verifactu:read` · `verifactu:write` *(API key only)* |
 | Time tracking | 29 | 17 | `payroll_exports:read` · `time_entries:read` · `time_entries:write` *(API key only)* |
 | Contacts | 28 | all | `contacts:delete` · `contacts:read` · `contacts:write` |
-| Absences | 25 | 10 | `absences:read` · `absences:transition` · `absences:write` *(API key only)* |
-| Delivery notes | 22 | 21 | `delivery_notes:delete` · `delivery_notes:read` · `delivery_notes:transition` · `delivery_notes:write` · `pdfs:read` · `delivery_notes:gdpr_forget` *(API key only)* |
-| Projects | 22 | 19 | `invoices:write` · `projects:read` · `projects:write` · `projects:delete` *(API key only)* |
-| Connected stores & integrations | 20 | 0 | `integration_events:read` · `integration_events:write` · `payouts:read` · `shopify_store:write` · `stores:read` · `stores:write` · `stripe_autoinvoicing:read` · `stripe_autoinvoicing:write` · `woocommerce_store:write` *(API key only)* |
+| Connected stores & integrations | 26 | 0 | `integration_events:read` *(API key only)* · `integration_events:write` *(API key only)* · `payouts:read` *(API key only)* · `shopify_store:write` *(API key only)* · `stores:read` *(API key only)* · `stores:write` *(API key only)* · `stripe_autoinvoicing:read` *(API key only)* · `stripe_autoinvoicing:write` *(API key only)* · `woocommerce_store:write` *(API key only)* |
+| Absences | 25 | 10 | `absences:read` · `absences:transition` *(API key only)* · `absences:write` *(API key only)* |
+| Delivery notes | 22 | 21 | `delivery_notes:delete` · `delivery_notes:gdpr_forget` *(API key only)* · `delivery_notes:read` · `delivery_notes:transition` · `delivery_notes:write` · `pdfs:read` |
+| Projects | 22 | 19 | `projects:delete` *(API key only)* · `projects:read` · `projects:write` · `invoices:write` |
 | Pro-formas | 20 | all | `pdfs:read` · `proformas:delete` · `proformas:read` · `proformas:send` · `proformas:transition` · `proformas:write` |
 | Quotes | 20 | all | `pdfs:read` · `quotes:delete` · `quotes:read` · `quotes:send` · `quotes:transition` · `quotes:write` |
 | Purchase invoices | 19 | all | `pdfs:read` · `purchase_invoices:delete` · `purchase_invoices:read` · `purchase_invoices:transition` · `purchase_invoices:write` |
-| Automations | 18 | 17 | `automation_runs:read` · `automations:read` · `automations:write` · `automations:delete` *(API key only)* |
+| Automations | 18 | 17 | `automation_runs:read` · `automations:delete` *(API key only)* · `automations:read` · `automations:write` |
+| Employees | 18 | all | `employees:read` · `employees:write` |
 | Recurring invoices | 18 | all | `recurring_invoices:delete` · `recurring_invoices:read` · `recurring_invoices:transition` · `recurring_invoices:write` |
-| Account members & invitations | 16 | 0 | `invitations:read` · `invitations:write` · `members:read` · `members:write` *(API key only)* |
-| Account NIFs & usage | 15 | 1 | `account:read` · `companies:delete` · `companies:read` · `companies:write` *(API key only)* |
+| Taxes | 18 | all | `taxes:delete` · `taxes:read` · `taxes:write` |
+| Account NIFs & usage | 15 | 1 | `account:read` · `companies:delete` *(API key only)* · `companies:read` *(API key only)* · `companies:write` *(API key only)* |
+| Transport control documents (DeCA) | 15 | all | `pdfs:read` · `transport_documents:delete` · `transport_documents:read` · `transport_documents:transition` · `transport_documents:write` |
 | Price lists | 13 | all | `price_lists:read` · `price_lists:write` |
 | Series | 13 | all | `series:read` · `series:write` |
 | Webhooks & events | 13 | all | `events:read` · `webhooks:delete` · `webhooks:read` · `webhooks:write` |
-| Employees | 12 | all | `employees:read` · `employees:write` |
-| Taxes | 12 | all | `taxes:read` |
+| Employee seats | 11 | all | `employees:read` · `employees:write` |
 | Work schedules | 11 | 5 | `work_schedules:read` · `work_schedules:write` *(API key only)* |
-| Account webhooks | 10 | 0 | `webhooks:delete` · `webhooks:read` · `webhooks:write` *(API key only)* |
+| Account webhooks | 10 | 0 | `webhooks:delete` *(API key only)* · `webhooks:read` *(API key only)* · `webhooks:write` *(API key only)* |
 | Purchase scanner | 10 | all | `purchase_invoices:delete` · `purchase_invoices:read` · `purchase_invoices:write` |
 | Tax reports | 9 | all | `tax_reports:read` · `tax_reports:write` |
-| API keys | 6 | 2 | `account:read` · `account:write` *(API key only)* |
-| Account ownership & NIF transfers | 5 | 0 | `account:owner` · `nif_transfers:read` · `nif_transfers:write` *(API key only)* |
-| Employee seats | 5 | all | `employees:read` · `employees:write` |
+| API keys | 7 | 3 | `account:read` · `account:write` *(API key only)* |
+| Additional-NIF offer redemptions | 6 | 0 | `companies:read` *(API key only)* · `companies:write` *(API key only)* |
 | FacturaE | 5 | all | `facturae:read` · `facturae:write` |
 | Company account | 4 | 3 | `account:read` · `account:write` *(API key only)* |
 | Developer settings & request logs | 4 | 0 | `developers:read` *(API key only)* |
@@ -181,7 +178,7 @@ The rows are **measured, not hand-maintained**: the domain is the
 publishes, and the scopes are those tools' declared `RequiredScope`, counted
 through the same code path that answers `tools/list` for a reference holder
 (enterprise plan, scope `*`; `php artisan public-api:export-stats`). Measured
-**2026-10-05** against backend `feat/epic-nif-axis-api` @ `cb15899de0`. Every
+**2026-10-17** against backend `feat/epic-nif-axis-api` @ `e639f925ff`. Every
 scope belongs to the closed scope catalog of the contract; `clients:*` and
 `suppliers:*` are no longer in it, which is why those two rows are gone.
 
@@ -196,6 +193,67 @@ activity/event logs use `events:read`.
 The counts above are a snapshot and the catalog grows. **Discover the tools at
 runtime with `tools/list`**: it is the authoritative list for the current
 session, and a tool missing from this table is not missing from the server.
+
+### Transport control documents (DeCA)
+
+The DeCA (*documento de control*) is the Spanish electronic administrative
+control document of public road freight transport, national or cabotage, with
+origin and destination in Spain (Orden FOM/2861/2012). It identifies the
+parties, shipments, goods, vehicle and dates, and travels with the driver as a
+PDF whose QR code opens a permanent public URL. It is **not a delivery note, an
+invoice or a VeriFactu record**: it can be pre-filled from delivery notes but
+never changes their numbering, stock or invoicing. It is not required in private
+complementary transport (own vehicles and drivers), parcel delivery of a few
+packages, removals, damaged or broken-down vehicles carried in special vehicles,
+or transport that needs no prior authorisation. Each DeCA declares the
+company's role in `company_role`: `shipper` (contractual shipper) or `carrier`
+(effective carrier).
+
+Its tools need the `transport_documents` module (Documentos de control), which
+requires the Delivery notes module and comes with the same plans: Profesional,
+Avanzado and Enterprise. All four scopes can be granted over OAuth;
+`transport_documents:delete` and `transport_documents:transition` are shown
+with a warning and not pre-checked.
+
+Statuses: `draft` → `issued` → `closed`, by hand or automatically 7 days after
+the last transport date. A manual close can be reopened back to `issued` before
+that deadline; an automatic one cannot. `cancelled` and `superseded` are
+terminal. Modifying keeps the DeCA `issued` with a new version under the same
+number, URL and QR.
+
+1. **Find** — `search_transport_documents` (filters `status`, transport dates,
+   `company_role`, `carrier_tax_id`, `delivery_note_id`, `q`),
+   `get_transport_document`, `get_transport_document_statuses`.
+2. **Draft** — `create_transport_document` (only `company_role` is required;
+   `delivery_note_ids` adds one shipment per delivery note),
+   `update_transport_document`, `delete_transport_document` (drafts only: an
+   issued DeCA is never deleted).
+3. **Issue** — `issue_transport_document` assigns the next number of the `DC`
+   series, the public URL with its QR and version 1 of the PDF. It needs the
+   shipper (name, tax ID and address), the carrier (name and tax ID), the
+   tractor plate and, in every shipment, origin, destination, goods, measure and
+   a transport date of today or later (Madrid time). A `422` lists what is
+   missing in `error.details.missing`.
+4. **Hand the copy to the driver** — `send_transport_document` emails the PDF
+   and the URL (up to 5 recipients; without `to`, the carrier contact), or share
+   the URL from `get_transport_document_pdf` (URL and metadata, never the bytes).
+5. **During the service** — `modify_transport_document` (only what changes, plus
+   `reason` and `data_origin`: `company` or `carrier_reported`; the parties never
+   change, so cancel and issue a new one), `close_transport_document`,
+   `reopen_transport_document` (with `reason`).
+6. **End it** — `cancel_transport_document` (with `reason`), or
+   `supersede_transport_document` when the carrier's own DeCA replaces it (with
+   `reference` and `reason`). `get_transport_document_evidence` returns the
+   issuance evidence, the proof of having issued it.
+
+**Always ask the user to confirm before calling `issue_transport_document`,
+`modify_transport_document`, `cancel_transport_document`,
+`supersede_transport_document` or `send_transport_document`**, stating which
+DeCA and what will happen: they are irreversible (a number consumed, a version
+published, a terminal state, an email sent). Pass an `idempotency_key` and reuse
+it on a retry so the effect does not happen twice. The QR image and the
+proof-of-issuance PDF are REST-only downloads, and loading places are managed in
+the app. Guide: <https://docs.factuarea.com/guides/transport-documents>.
 
 ### Purchase scanner flow
 
@@ -224,7 +282,7 @@ or the REST API; there is no MCP tool to upload them.
 `resolve_purchase_scan_duplicate` or `archive_purchase_scan`**, stating which
 scan and what will happen. A `429` with code `ocr_company_quota_exceeded` means
 the monthly quota is used up and is not recoverable before `Retry-After`: do
-not retry in a loop. Empresario shares 100 scans/month and 10/day across the company; Enterprise is unlimited. If a saved scan has `deferred_reason=ocr_daily_quota_reached` and `deferred_until`, the original is already safe and processing resumes automatically at that time. Explain the daily wait, preserve the scan ID and do not upload it again or spend retries while deferred. The mailbox always requires human review.
+not retry in a loop. Profesional includes 100 scans/month and 10/day; Avanzado includes 400 scans/month and 40/day. Quotas are shared across all company users and channels; Enterprise quotas are per contract. If a saved scan has `deferred_reason=ocr_daily_quota_reached` and `deferred_until`, the original is already safe and processing resumes automatically at that time. Explain the daily wait, preserve the scan ID and do not upload it again or spend retries while deferred. The mailbox always requires human review.
 
 State changes are **discrete tools**, not a generic `change_status`: e.g.
 `mark_invoice_as_paid`, `send_invoice`, `void_invoice`, `accept_quote`,
@@ -263,6 +321,11 @@ not the human message (messages are in Spanish):
   *Channel policy* are **API-key only**.
 - `addon_not_active` / module-not-available — the tool's module isn't in the
   company's plan. Not a bug; the plan must include that module.
+- `employee_seat_payment_method_required` (`402`) — creating or reactivating an
+  employee charges a seat whenever the plan bills (also when the subscription is
+  `past_due` or the plan was granted); Enterprise, managed companies and an
+  active trial are exempt. The company has no payment method: send the user to
+  `error.details.payment_setup_url`. Nothing was created.
 - **`422`** — validation or **business-rule violation** (invalid status
   transition, document not in an editable state, payment date out of range).
   Business-rule violations are `422`, not `403`/`409`.

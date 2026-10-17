@@ -7,9 +7,10 @@ description: Entry point for building on the Factuarea public API — invoicing,
 
 Factuarea is a multi-tenant invoicing SaaS for Spanish businesses. Its public
 API (`https://api.factuarea.com/v1`) covers invoices, quotes, pro-formas,
-delivery notes, recurring invoices and expenses, the purchase scanner
-(`purchase_scans`), contacts, products, price lists, document series, taxes,
-VeriFactu (AEAT) and webhooks.
+delivery notes, transport control documents (DeCA, `transport_documents`),
+recurring invoices and expenses, the purchase scanner (`purchase_scans`),
+contacts, products, price lists, document series, taxes, VeriFactu (AEAT) and
+webhooks.
 
 There is **one** party resource: `contacts`. A customer and a supplier are
 **roles** of the same contact (`roles: ["customer"]`, `roles: ["supplier"]`, and
@@ -77,7 +78,7 @@ integrators up. Look the exact operations up before writing any of them.
 - **The additional NIF.** A second tax ID in the same account is
   `POST /v1/accounts/{account}/companies`, and
   `GET /v1/accounts/{account}/companies/seat-charge-preview` prices it first. It
-  is available from the Empresario plan at 15 EUR a month before VAT. Guide:
+  is available from the Profesional plan at 15 EUR a month before VAT. Guide:
   [additional tax IDs](https://docs.factuarea.com/guides/additional-nifs).
 - **Granted access and the managed account.** In a **granted access** another
   account reaches some of your tax IDs with level `view` or `operate`. It is
@@ -290,7 +291,7 @@ operations:
   document-reading quota is used up. It carries `Retry-After` (seconds until
   the quota renews) and it is **not recoverable** before then — the scan's
   `last_error` reports `recoverable: false`. Wait; do not retry in a loop.
-- Empresario shares **100 scans/month and 10/day** across all company users and channels; Enterprise is unlimited. A persisted scan with `deferred_reason=ocr_daily_quota_reached` and `deferred_until` is queued for automatic resumption at the daily reset. Keep its ID and do not upload it again or retry while deferred.
+- Profesional includes **100 scans/month and 10/day**; Avanzado includes **400 scans/month and 40/day**. Quotas are shared across all company users and channels; Enterprise quotas are **per contract**. A persisted scan with `deferred_reason=ocr_daily_quota_reached` and `deferred_until` is queued for automatic resumption at the daily reset. Keep its ID and do not upload it again or retry while deferred.
 - List responses publish `facets`. Detail responses publish `attempts_total` separately from the recent attempts returned; a truncated attempt list is not the total.
 - **`403` `module_upgrade_required`** means the plan does not include the
   scanner. No retry fixes it; the plan has to change.

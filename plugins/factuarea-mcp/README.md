@@ -2,10 +2,10 @@
 
 Connects [Claude Code](https://claude.com/claude-code) to the
 **[Factuarea](https://factuarea.com) MCP server** — the Factuarea public API
-exposed as tools for invoicing, quotes, pro-formas, delivery notes, recurring &
-purchase invoices, contacts — customers and suppliers are roles of one
-contact — products, price lists, document series, taxes, VeriFactu (AEAT),
-tasks and projects, and webhooks for Spanish companies.
+exposed as tools for invoicing, quotes, pro-formas, delivery notes, transport
+control documents (DeCA), recurring & purchase invoices, contacts — customers and
+suppliers are roles of one contact — products, price lists, document series,
+taxes, VeriFactu (AEAT), tasks and projects, and webhooks for Spanish companies.
 
 The plugin ships two things:
 
@@ -53,8 +53,8 @@ Use a `fact_test_` key for the isolated sandbox (external effects off).
 Once connected, just ask Claude to work with your Factuarea data — "list this
 quarter's unpaid invoices", "create a draft invoice for Acme S.L.", "check the
 VeriFactu chain", "add a webhook endpoint", "list the tasks assigned to me this
-week". The skill loads automatically to guide those calls; you can also invoke it
-manually:
+week", "prepare the DeCA for tomorrow's delivery notes". The skill loads
+automatically to guide those calls; you can also invoke it manually:
 
 ```text
 /factuarea-mcp:factuarea-mcp
@@ -64,9 +64,9 @@ manually:
 
 - **Connecting** via OAuth (consent with company + environment selection) or an
   API key header.
-- **Channel policy** — an API key with scope `*` reaches **586 tools**; OAuth reaches
-  **453**, because **133** sit behind scopes the consent catalog never grants —
-  account, membership, NIF-transfer and credential administration, account
+- **Channel policy** — an API key with scope `*` reaches **613 tools**; OAuth reaches
+  **489**, because **124** sit behind scopes the consent catalog never grants —
+  account and credential administration, account
   webhooks and request logs, `verifactu:write`,
   connected stores, workforce actions taken on someone's behalf, and
   irreversible operations such as `delivery_notes:gdpr_forget` or
@@ -77,6 +77,10 @@ manually:
   projects (deleting them is API-key only), users, notifications and the agenda
   among them — plus how
   plan/module and feature flags further narrow what's listed.
+- **Transport control documents (DeCA)** — what the DeCA is (not a delivery
+  note, an invoice or a VeriFactu record), its lifecycle (draft, issued,
+  closed, cancelled, superseded; modifying an issued one adds a version), and
+  the irreversible tools that need the user's confirmation.
 - **Identity** — opaque `id` (UUID v7), foreign keys as `*_id`.
 - **Cursor pagination** — `{ data, has_more, next_cursor }`, no page numbers.
 - **Errors** — `insufficient_scope`, `addon_not_active`, `422` business-rule
