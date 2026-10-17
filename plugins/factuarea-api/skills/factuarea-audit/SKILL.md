@@ -318,4 +318,4 @@ output, including the day it matters.
 - Rate limits: <https://docs.factuarea.com/guides/rate-limits>
 - Pagination: <https://docs.factuarea.com/guides/pagination>
 - Annul vs correct: <https://docs.factuarea.com/guides/annul-vs-correct>
-- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json>
+- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json> — **root route**: it describes the whole v1 surface, so it takes no `/companies/{company}` segment

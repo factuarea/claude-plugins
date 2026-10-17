@@ -1,6 +1,6 @@
 ---
 name: factuarea-api
-description: Entry point for building on the Factuarea public API — invoicing, quotes, clients, suppliers, products, VeriFactu (AEAT) and webhooks for Spanish businesses. Use this when the user says they want to integrate with Factuarea, asks where to start, asks whether the API supports something, asks how to authenticate or which environment a key points at, or needs to find what the Factuarea documentation says about a topic. Carries the non-negotiable rules of the contract, how to look anything up locally with `factuarea docs`, and routes the job to the skill that owns it — `factuarea-implement` to write the calls, `factuarea-webhooks` for the receiver endpoint, `factuarea-audit` to review code already written, `factuarea-upgrade` after a contract or SDK change. Once the task is one of those four, hand over instead of answering here. Not for operating an existing Factuarea account through MCP tools — that is the separate `factuarea-mcp` plugin.
+description: Entry point for building on the Factuarea public API — invoicing, quotes, contacts (customers and suppliers are roles of one contact), products, price lists, VeriFactu (AEAT) and webhooks for Spanish businesses. Use this when the user says they want to integrate with Factuarea, asks where to start, asks whether the API supports something, asks how to authenticate or which environment a key points at, or needs to find what the Factuarea documentation says about a topic. Carries the non-negotiable rules of the contract, how to look anything up locally with `factuarea docs`, and routes the job to the skill that owns it — `factuarea-implement` to write the calls, `factuarea-webhooks` for the receiver endpoint, `factuarea-audit` to review code already written, `factuarea-upgrade` after a contract or SDK change. Once the task is one of those four, hand over instead of answering here. Not for operating an existing Factuarea account through MCP tools — that is the separate `factuarea-mcp` plugin.
 ---
 
 # Integrating with Factuarea
@@ -9,8 +9,23 @@ Factuarea is a multi-tenant invoicing SaaS for Spanish businesses. Its public
 API (`https://api.factuarea.com/v1`) covers invoices, quotes, pro-formas,
 delivery notes, transport control documents (DeCA, `transport_documents`),
 recurring invoices and expenses, the purchase scanner (`purchase_scans`),
-clients, suppliers, products, document series, taxes, VeriFactu (AEAT) and
+contacts, products, price lists, document series, taxes, VeriFactu (AEAT) and
 webhooks.
+
+There is **one** party resource: `contacts`. A customer and a supplier are
+**roles** of the same contact (`roles: ["customer"]`, `roles: ["supplier"]`, and
+a contact may hold both), so one tax id is one contact. The former `clients` and
+`suppliers` resources are **retired**: they are not re-anchored anywhere, they
+are replaced by `contacts` with the right role.
+
+Company-scoped resources hang off the **company axis**,
+`https://api.factuarea.com/v1/companies/{company}/…`, with `{company}` the
+company UUID; account-scoped ones off `…/v1/accounts/{account}/…`. The root
+catalogs and the credential introspection (`/v1/me`) take neither. Never assume
+a resource exists because the domain suggests it should: look its exact
+operations up the same way as any other.
+
+The **account model** (next section) says what `{account}` is on each route.
 
 This skill is the **orientation layer**: the rules that hold everywhere, how to
 look anything up, and who takes it from here. It deliberately does not repeat
@@ -29,6 +44,66 @@ responses. A supplier invoice is still a fiscal supporting document for an expen
 Resource names such as `purchase_invoices`, scopes, event IDs, tool names, SDK
 methods and routes stay unchanged. Never invent an `expenses` resource or rename
 a tool to match a display label.
+
+## The account model
+
+An **account** is the customer; its tax IDs hang off it. `{account}` is the
+`account.id` that `GET /v1/me` returns for the credential, and every operation
+of the account lives under `/v1/accounts/{account}/…`. Five things trip
+integrators up. Look the exact operations up before writing any of them.
+
+- **Root provisioning routes take no account segment.** Listing and
+  provisioning managed accounts — `GET /v1/accounts`, `POST /v1/accounts` — and
+  the bulk import — `GET /v1/accounts/imports/template`,
+  `POST /v1/accounts/imports/preview`, `POST /v1/accounts/imports` — sit at the
+  root of the account axis. There is nothing between `/accounts` and the rest, so
+  never add your own account id to them. They need the privileged
+  `accounts:read` / `accounts:write` scopes, which `*` does not cover.
+- **In `managed-accounts`, `{account}` is the managed account**, not yours:
+  `GET /v1/accounts/{account}`, `PATCH /v1/accounts/{account}/plan` (price it
+  first with `GET /v1/accounts/{account}/plan/preview`),
+  `PATCH /v1/accounts/{account}/access-level`,
+  `POST /v1/accounts/{account}/claim-tokens` (reissue the claim voucher of that
+  managed account) and `DELETE /v1/accounts/{account}/management`. Everywhere
+  else under `/v1/accounts/{account}/…`, `{account}` is **your own** account, and
+  naming any other answers `404 account_not_found`. Guide:
+  [managed accounts](https://docs.factuarea.com/guides/managed-accounts).
+- **A NIF transfer, not a claim voucher.** A tax ID moves to another account
+  with `GET`/`POST /v1/accounts/{account}/nif-transfers`,
+  `POST /v1/accounts/{account}/nif-transfers/accept` and
+  `POST /v1/accounts/{account}/nif-transfers/{nif_transfer}/revoke`, under the
+  `nif_transfers:read|write` scopes. Create, accept and revoke are irreversible,
+  so each takes an `Idempotency-Key`. Guide:
+  [accounts and tax IDs](https://docs.factuarea.com/guides/accounts-and-nifs).
+- **The additional NIF.** A second tax ID in the same account is
+  `POST /v1/accounts/{account}/companies`, and
+  `GET /v1/accounts/{account}/companies/seat-charge-preview` prices it first. It
+  is available from the Profesional plan at 15 EUR a month before VAT. Guide:
+  [additional tax IDs](https://docs.factuarea.com/guides/additional-nifs).
+- **Granted access and the managed account.** In a **granted access** another
+  account reaches some of your tax IDs with level `view` or `operate`. It is
+  managed **only from the web app**: there is no API route and no MCP tool for it
+  on purpose. The receiving account reaches the granted tax IDs through the
+  `{company}` segment, with its own credentials, and never through the granting
+  account's `{account}`. A **managed account** is the account you provision for
+  a client, with your access level on it (`none`, `view`, `operate`) until the
+  client claims it. Guides:
+  [granted access](https://docs.factuarea.com/guides/granted-access) ·
+  [managed accounts](https://docs.factuarea.com/guides/managed-accounts).
+
+Two more surfaces belong to the account:
+
+- **Bulk import is API-only.** There is no MCP tool for it. The body of
+  `POST /v1/accounts/imports/preview` and `POST /v1/accounts/imports` is
+  `multipart/form-data` with the fields `accounts_file` (required),
+  `customers_file` (optional) and `options` (optional; only `send_email`,
+  `apply_customers_to_own_company` and `confirm_plan_changes`, all `false` by
+  default). Preview first: it writes nothing. Applying requires an
+  `Idempotency-Key`. Do not set `Content-Type` by hand: the HTTP client adds the
+  boundary. Guide: [bulk import](https://docs.factuarea.com/guides/bulk-import).
+- **Account webhooks** (`/v1/accounts/{account}/webhooks/…`) and account request
+  logs (`/v1/accounts/{account}/request-logs`) are the account's counterpart of
+  the company ones. The receiver contract is in `factuarea-webhooks`.
 
 ## The golden rules
 
@@ -63,7 +138,10 @@ fails in production. Each one names the skill that goes deep on it.
 Two sources of truth, both live:
 
 - **The OpenAPI spec** — <https://api.factuarea.com/v1/openapi.json>. Exact
-  operations, paths, request and response schemas, enum values, scopes.
+  operations, paths, request and response schemas, enum values, scopes. This one
+  is a **root route**: the document describes the whole v1 surface and is
+  identical for every credential, so it never takes a `/companies/{company}`
+  segment.
 - **The published docs** — <https://docs.factuarea.com>. Guides, concepts, the
   error catalogue, the SDK pages.
 
@@ -200,10 +278,10 @@ operations:
 
 | Group | Operations |
 | --- | --- |
-| Ingest | `POST /purchase_scans` — `multipart/form-data`, field `files[]`: up to 20 PDF, JPEG or PNG files, **20 MiB per file and 100 MiB per batch**; answers `202` with `accepted[]` and `rejected[]` |
-| Read | `GET /purchase_scans` (cursor, filters by `status`, `source`, dates) · `GET /purchase_scans/{id}` (evidence-first extraction, issues, `available_actions`, current `version`) · `GET /purchase_scans/{id}/source` (download the original) · `GET /purchase_scans/stats` · `GET /purchase_scan_emails` (mailbox) · `GET /purchase_invoices/expense_categories` |
-| Work the scan | `PUT /purchase_scans/{id}/review` · `POST /purchase_scans/{id}/retry` · `POST /purchase_scans/{id}/duplicate_resolution` (`link_existing` or `archive`) · `POST /purchase_scans/{id}/convert` (one draft expense) |
-| Archive | `DELETE /purchase_scans/{id}` · `POST /purchase_scans/{id}/restore` |
+| Ingest | `POST /v1/companies/{company}/purchase-scans` — `multipart/form-data`, field `files[]`: up to 20 PDF, JPEG or PNG files, **20 MiB per file and 100 MiB per batch**; answers `202` with `accepted[]` and `rejected[]` |
+| Read | `GET /v1/companies/{company}/purchase-scans` (cursor, filters by `status`, `source`, dates) · `GET /v1/companies/{company}/purchase-scans/{id}` (evidence-first extraction, issues, `available_actions`, current `version`) · `GET /v1/companies/{company}/purchase-scans/{id}/source` (download the original) · `GET /v1/companies/{company}/purchase-scans/stats` · `GET /v1/companies/{company}/purchase-scan-emails` (mailbox) · `GET /v1/companies/{company}/purchase-invoices/expense-categories` |
+| Work the scan | `PATCH /v1/companies/{company}/purchase-scans/{id}/review` · `POST /v1/companies/{company}/purchase-scans/{id}/retry` · `POST /v1/companies/{company}/purchase-scans/{id}/duplicate-resolution` (`link_existing` or `archive`) · `POST /v1/companies/{company}/purchase-scans/{id}/convert` (one draft expense) |
+| Archive | `DELETE /v1/companies/{company}/purchase-scans/{id}` · `POST /v1/companies/{company}/purchase-scans/{id}/restore` |
 
 - Send an **`Idempotency-Key`** on the upload and on every write; a replay
   returns the same result without ingesting or converting twice. Every
@@ -257,12 +335,18 @@ account the code is writing to.
 ## Documentation (source of truth)
 
 - Docs home: <https://docs.factuarea.com>
-- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json>
+- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json> — **root route**: it describes the whole v1 surface, so it takes no `/companies/{company}` segment
 - Guides: [pagination](https://docs.factuarea.com/guides/pagination) ·
   [idempotency](https://docs.factuarea.com/guides/idempotency) ·
   [errors](https://docs.factuarea.com/guides/errors) ·
   [webhooks](https://docs.factuarea.com/guides/webhooks) ·
   [versioning](https://docs.factuarea.com/guides/versioning)
+- Account model: [accounts and tax IDs](https://docs.factuarea.com/guides/accounts-and-nifs) ·
+  [additional tax IDs](https://docs.factuarea.com/guides/additional-nifs) ·
+  [granted access](https://docs.factuarea.com/guides/granted-access) ·
+  [managed accounts](https://docs.factuarea.com/guides/managed-accounts) ·
+  [bulk import](https://docs.factuarea.com/guides/bulk-import) ·
+  [account webhooks](https://docs.factuarea.com/guides/account-webhooks)
 - SDKs: <https://docs.factuarea.com/sdks>
 - CLI: <https://docs.factuarea.com/cli>
 - API keys: <https://app.factuarea.com/settings/developers/api-keys>

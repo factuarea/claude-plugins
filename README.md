@@ -2,14 +2,14 @@
 
 Official [Claude Code](https://claude.com/claude-code) plugin marketplace for
 **[Factuarea](https://factuarea.com)** — the multi-tenant invoicing SaaS for
-Spanish businesses (invoicing, quotes, clients, suppliers, products, VeriFactu
-and webhooks).
+Spanish businesses (invoicing, quotes, contacts — customers and suppliers are
+roles of one contact — products, VeriFactu and webhooks).
 
 ## Two plugins, two jobs
 
 | Plugin | For | What it does |
 | --- | --- | --- |
-| [`factuarea-mcp`](./plugins/factuarea-mcp) | **Running your business** | Connects Claude Code to the **Factuarea MCP server** (`https://mcp.factuarea.com`) so Claude can call Factuarea tools directly — search/create/send invoices, manage clients, issue transport control documents (DeCA), follow tasks and projects, check VeriFactu, configure webhooks. Authenticate via OAuth or an API-key header. One skill, on using those tools well |
+| [`factuarea-mcp`](./plugins/factuarea-mcp) | **Running your business** | Connects Claude Code to the **Factuarea MCP server** (`https://mcp.factuarea.com`) so Claude can call Factuarea tools directly — search/create/send invoices, manage contacts, issue transport control documents (DeCA), follow tasks and projects, check VeriFactu, configure webhooks. Authenticate via OAuth or an API-key header. One skill, on using those tools well |
 | [`factuarea-api`](./plugins/factuarea-api) | **Building the integration** | Five developer skills for the code you write in your own repository: where to start, the official TypeScript and PHP SDKs, webhook receivers, auditing an existing integration, and realigning it after a contract or SDK change. **Declares no MCP server** |
 
 They are **complementary, not alternatives**.
@@ -145,13 +145,26 @@ Its skill covers:
 - MCP server repository (npm package, registry manifest, issues):
   <https://github.com/factuarea/factuarea-mcp>
 - Docs home: <https://docs.factuarea.com>
-- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json>
+- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json> — **root route**: it describes the whole v1 surface, so it takes no `/companies/{company}` segment
 - SDKs: <https://docs.factuarea.com/sdks> —
   [TypeScript](https://docs.factuarea.com/sdks/typescript) ·
   [PHP](https://docs.factuarea.com/sdks/php)
 - CLI: <https://docs.factuarea.com/cli>
 - Dashboard / API keys: <https://app.factuarea.com/settings/developers/api-keys>
 - Support: <https://docs.factuarea.com/support> · contact: `info@factuarea.com`
+
+## Releasing
+
+There is nothing to publish. This marketplace is installed straight from the Git
+repository (`/plugin marketplace add factuarea/claude-plugins`), so a change is
+live for users as soon as it lands on the default branch. The repository carries
+**no package on any registry** — no npm, no Packagist, no wordpress.org — and
+**no release workflow**: don't look for a publish step after merging a pull
+request, and don't tag. Bump the `version` field in
+`.claude-plugin/marketplace.json` and in the affected `plugins/*/.claude-plugin/plugin.json`
+when a plugin's contents change, and keep the two in sync. The bump belongs to the
+merge that makes the change live, not to every edit on the way there: a branch may
+carry several edits to the same plugin and still bump its version once.
 
 ## License
 

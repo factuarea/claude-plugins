@@ -1,6 +1,6 @@
 ---
 name: factuarea-mcp
-description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, transport control documents (DeCA), recurring invoices & expenses, contacts (customers and suppliers), products, price lists, document series, taxes, VeriFactu (AEAT), FacturaE, tax reports, time tracking, tasks and projects, automations and webhooks for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their business data — search/create/send invoices, manage contacts, issue the DeCA for a road freight transport, follow tasks and projects, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, the error envelope, and test (sandbox) mode.
+description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, transport control documents (DeCA), recurring & purchase invoices, contacts (customers and suppliers are roles of one contact), products, price lists, document series, taxes, VeriFactu (AEAT), tasks and projects, and webhooks for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their accounting data — search/create/send invoices, manage contacts, issue the DeCA for a road freight transport, follow tasks and projects, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, the error envelope, and test (sandbox) mode.
 ---
 
 # Factuarea MCP server
@@ -60,32 +60,44 @@ only the prefix changes the environment.
 The catalog is the same set of tools, but the two channels resolve a **different
 maximum reach**:
 
-- **API key (owner's own key, scope `*`)** → the **full catalog**. The owner is
-  acting on their own company, so the key can cover everything, including the
-  owner-only operations below.
-- **OAuth (third-party app, curated scopes)** → a **curated subset**. The OAuth
-  scope catalog deliberately **never grants** these groups, so a third-party app
-  can never reach them on the user's behalf:
-  - **VeriFactu writes** (`verifactu:write`) — registering/retrying records and
-    events, VeriFactu settings, uploading/activating/revoking FNMT certificates.
-  - **GDPR erasure** of the delivery-note signature audit trail
-    (`delivery_notes:gdpr_forget`).
-  - **Payments, gateways and stores** (`stripe_autoinvoicing:*`, `payouts:read`,
-    `integration_events:*`, `stores:*`, `woocommerce_store:write`,
-    `shopify_store:write`).
-  - **Emails and API request logs** (`emails:read`, `developers:read`).
-  - **Managed companies and their API keys** (`companies:*`, `api_keys:*`) and
-    **account writes** (`account:write`).
-  - **Privileged workforce writes** (`time_entries:write`, `absences:write`,
-    `absences:transition`, `work_schedules:write`).
-  - **Deleting tasks and projects** (`tasks:delete`, `projects:delete`) — the
-    delete is irreversible: it takes comments, attachments and logged time
-    with it.
-  VeriFactu **reads** (`verifactu:read`) and workforce reads remain available to
-  OAuth apps, as do reading and writing tasks and projects (the writes are shown
-  with a warning and not pre-checked), the member directory (`users:read`) and
-  the user's own notifications. Live counts per channel and domain:
-  <https://docs.factuarea.com/mcp/tools>.
+- **API key (owner's own key, scope `*`)** → the whole catalog a `*` holder
+  sees, **613 tools**. The owner is acting on their own account, so the key can
+  cover everything, including the privileged operations below. The managed-account
+  tools (provisioning, plan changes, ending a management) are
+  **not** in that figure: they need the privileged scope `accounts:read` /
+  `accounts:write`, which `*` does **not** cover, so they only appear for a key
+  that carries `accounts:*`, granted by a superadmin. OAuth never grants it.
+- **OAuth (third-party app, curated scopes)** → **489 tools**. The remaining
+  **124** are unreachable by consent: the OAuth scope catalog has no dotted
+  scope that translates to them, so a third-party app can never reach them on
+  the user's behalf. They fall into five groups:
+  - **Account and credential administration** — `account:write`,
+    `companies:read`, `companies:write`, `companies:delete`, `developers:read`,
+    plus the privileged `accounts:read` / `accounts:write`. Who holds the keys
+    to the account and which NIFs it has is decided by the owner from their own dashboard or with their own key,
+    never by a delegated app.
+    Account webhooks (`webhooks:*` at account level) and account request logs
+    (`developers:read`) are the same: **API key only**.
+    Bulk import of managed accounts has **no MCP tool**, by design (it is
+    privileged and uploads a file, which the MCP transport does not carry): use
+    the REST API.
+  - **VeriFactu writes** — `verifactu:write`: creating/retrying VeriFactu
+    records, editing VeriFactu settings, and uploading/activating/revoking FNMT
+    certificates. VeriFactu **reads** (`verifactu:read`) stay available.
+  - **Connected stores and money movement** — `stores:read`, `stores:write`,
+    `woocommerce_store:write`, `shopify_store:write`, `integration_events:read`,
+    `integration_events:write`, `payouts:read`, `stripe_autoinvoicing:read`,
+    `stripe_autoinvoicing:write`, `emails:read`.
+  - **Workforce actions taken on someone's behalf** — `absences:write`,
+    `absences:transition`, `time_entries:write`, `work_schedules:write`.
+  - **Irreversible or credential-shaped operations** —
+    `delivery_notes:gdpr_forget` (forgetting a delivery-note signature audit
+    trail), `automations:delete` and the deletion of tasks and projects
+    (`tasks:delete`, `projects:delete`), which takes comments, attachments and
+    logged time with it.
+  OAuth apps do reach the reading and writing of tasks and projects (the writes
+  are shown with a warning and not pre-checked), the member directory
+  (`users:read`) and the user's own notifications.
 
 Beyond the channel, the tools you see in `tools/list` are further narrowed by:
 
@@ -93,9 +105,6 @@ Beyond the channel, the tools you see in `tools/list` are further narrowed by:
   hidden, and invoking it returns `insufficient_scope`);
 - the company's **subscription plan / module**; and
 - **feature flags**.
-
-So an OAuth session with read-only scopes on a small plan will list far fewer
-tools than the full catalog — that's expected, not an error.
 
 ## Product terminology and stable contracts
 
@@ -107,49 +116,76 @@ Resource names such as `purchase_invoices`, scopes, event IDs, tool names, SDK
 methods and routes stay unchanged. Never invent an `expenses` resource or rename
 a tool to match a display label.
 
-## Tool domains (36)
+So an OAuth session with read-only scopes on an Esencial (`emprendedor`) plan will list far
+fewer than 489 tools — that's expected, not an error.
+
+## Tool domains (39)
 
 Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_contact`,
-`mark_invoice_as_paid`). The catalog covers 36 domains; † marks owner-only
-(API key) scopes:
+`mark_invoice_as_paid`). **Tools** is what an API key with scope `*` sees;
+**OAuth** is what a consent grant can reach (`all` when the whole domain is
+reachable).
 
-| Domain | Scopes |
-| --- | --- |
-| Invoices | `invoices:read` · `invoices:write` · `invoices:send` · `invoices:void` · `invoices:delete` |
-| Contacts (customers and suppliers) | `contacts:read` · `contacts:write` · `contacts:delete` |
-| Products | `products:read` · `products:write` · `products:delete` |
-| Price lists | `price_lists:read` · `price_lists:write` |
-| Quotes | `quotes:read` · `quotes:write` · `quotes:send` · `quotes:transition` · `quotes:delete` |
-| Pro-forma invoices | `proformas:read` · `proformas:write` · `proformas:send` · `proformas:transition` · `proformas:delete` |
-| Delivery notes | `delivery_notes:read` · `delivery_notes:write` · `delivery_notes:transition` · `delivery_notes:delete` · `delivery_notes:gdpr_forget` † |
-| Transport control documents (DeCA) | `transport_documents:read` · `transport_documents:write` (drafts and the email to the carrier) · `transport_documents:delete` (drafts only) · `transport_documents:transition` (issue, modify, close, reopen, cancel, supersede); `get_transport_document_pdf` uses `pdfs:read` |
-| Expenses | `purchase_invoices:read` · `purchase_invoices:write` · `purchase_invoices:transition` · `purchase_invoices:delete` |
-| Recurring invoices | `recurring_invoices:read` · `recurring_invoices:write` · `recurring_invoices:transition` · `recurring_invoices:delete` |
-| Series | `series:read` · `series:write` (`update_series` edits a series under the fiscal guards of the numbering: the code and mask are fixed once documents exist, the purpose once it has an invoice, and all numbering fields lock when the AEAT accepts a record; a series is never deleted, archive it) |
-| Taxes | `taxes:read` · `taxes:write` |
-| VeriFactu | `verifactu:read` · `verifactu:write` † |
-| FacturaE (FACe) | `facturae:read` · `facturae:write` |
-| Tax reports (Modelo 303, 347, 130) | `tax_reports:read` · `tax_reports:write` |
-| Webhooks & events | `webhooks:read` · `webhooks:write` · `webhooks:delete` · `events:read` |
-| Automations | `automations:read` · `automations:write` · `automations:delete` · `automation_runs:read` |
-| Account | `account:read` · `account:write` † |
-| API keys | `account:read` · `account:write` † |
-| Managed companies (gestoría) | `companies:*` † · `api_keys:*` † (the `*_gestoria_seat_offer_redemption` tools require the `gestoria` module) |
-| Payments & gateways | `stripe_autoinvoicing:*` † · `payouts:read` † · `integration_events:*` † · `stores:*` † · `woocommerce_store:write` † · `shopify_store:write` † |
-| Emails | `emails:read` † |
-| API request logs | `developers:read` † |
-| Employees | `employees:read` · `employees:write` (the `*_employee_batch` tools require the `control_horario` module) |
-| Employee seats | `employees:read` · `employees:write` (the `*_employee_seat_offer_redemption` tools require the `control_horario` module) |
-| Work schedules | `work_schedules:read` · `work_schedules:write` † |
-| Time tracking | `time_entries:read` · `time_entries:write` † · `payroll_exports:read` |
-| Absences | `absences:read` · `absences:write` † · `absences:transition` † |
-| Presence | `presence:read` |
-| Holidays | `holidays:read` |
-| Projects | `projects:read` · `projects:write` · `projects:delete` † (`invoice_project_time` also needs `invoices:write`) |
-| Tasks | `tasks:read` · `tasks:write` · `tasks:delete` † |
-| Users | `users:read` |
-| Notifications | `notifications:read` · `notifications:write` |
-| Agenda | `tasks:read` (each extra layer, such as invoice due dates, also needs its own read scope) |
+The catalog is **613 tools** across **39 domains**, of which **489** are
+reachable by an OAuth consent grant and **124** are API-key only. Privileged
+`accounts:*` tools (managed accounts) are outside these figures: only a
+credential with that scope sees them.
+
+| Domain | Tools | OAuth | Scopes |
+| --- | ---: | ---: | --- |
+| Tasks | 52 | 46 | `tasks:delete` *(API key only)* · `tasks:read` · `tasks:write` |
+| Invoices | 45 | all | `invoices:delete` · `invoices:read` · `invoices:send` · `invoices:void` · `invoices:write` · `pdfs:read` |
+| Products | 40 | all | `products:delete` · `products:read` · `products:write` |
+| VeriFactu | 31 | 20 | `verifactu:read` · `verifactu:write` *(API key only)* |
+| Time tracking | 29 | 17 | `payroll_exports:read` · `time_entries:read` · `time_entries:write` *(API key only)* |
+| Contacts | 28 | all | `contacts:delete` · `contacts:read` · `contacts:write` |
+| Connected stores & integrations | 26 | 0 | `integration_events:read` *(API key only)* · `integration_events:write` *(API key only)* · `payouts:read` *(API key only)* · `shopify_store:write` *(API key only)* · `stores:read` *(API key only)* · `stores:write` *(API key only)* · `stripe_autoinvoicing:read` *(API key only)* · `stripe_autoinvoicing:write` *(API key only)* · `woocommerce_store:write` *(API key only)* |
+| Absences | 25 | 10 | `absences:read` · `absences:transition` *(API key only)* · `absences:write` *(API key only)* |
+| Delivery notes | 22 | 21 | `delivery_notes:delete` · `delivery_notes:gdpr_forget` *(API key only)* · `delivery_notes:read` · `delivery_notes:transition` · `delivery_notes:write` · `pdfs:read` |
+| Projects | 22 | 19 | `projects:delete` *(API key only)* · `projects:read` · `projects:write` · `invoices:write` |
+| Pro-formas | 20 | all | `pdfs:read` · `proformas:delete` · `proformas:read` · `proformas:send` · `proformas:transition` · `proformas:write` |
+| Quotes | 20 | all | `pdfs:read` · `quotes:delete` · `quotes:read` · `quotes:send` · `quotes:transition` · `quotes:write` |
+| Purchase invoices | 19 | all | `pdfs:read` · `purchase_invoices:delete` · `purchase_invoices:read` · `purchase_invoices:transition` · `purchase_invoices:write` |
+| Automations | 18 | 17 | `automation_runs:read` · `automations:delete` *(API key only)* · `automations:read` · `automations:write` |
+| Employees | 18 | all | `employees:read` · `employees:write` |
+| Recurring invoices | 18 | all | `recurring_invoices:delete` · `recurring_invoices:read` · `recurring_invoices:transition` · `recurring_invoices:write` |
+| Taxes | 18 | all | `taxes:delete` · `taxes:read` · `taxes:write` |
+| Account NIFs & usage | 15 | 1 | `account:read` · `companies:delete` *(API key only)* · `companies:read` *(API key only)* · `companies:write` *(API key only)* |
+| Transport control documents (DeCA) | 15 | all | `pdfs:read` · `transport_documents:delete` · `transport_documents:read` · `transport_documents:transition` · `transport_documents:write` |
+| Price lists | 13 | all | `price_lists:read` · `price_lists:write` |
+| Series | 13 | all | `series:read` · `series:write` |
+| Webhooks & events | 13 | all | `events:read` · `webhooks:delete` · `webhooks:read` · `webhooks:write` |
+| Employee seats | 11 | all | `employees:read` · `employees:write` |
+| Work schedules | 11 | 5 | `work_schedules:read` · `work_schedules:write` *(API key only)* |
+| Account webhooks | 10 | 0 | `webhooks:delete` *(API key only)* · `webhooks:read` *(API key only)* · `webhooks:write` *(API key only)* |
+| Purchase scanner | 10 | all | `purchase_invoices:delete` · `purchase_invoices:read` · `purchase_invoices:write` |
+| Tax reports | 9 | all | `tax_reports:read` · `tax_reports:write` |
+| API keys | 7 | 3 | `account:read` · `account:write` *(API key only)* |
+| Additional-NIF offer redemptions | 6 | 0 | `companies:read` *(API key only)* · `companies:write` *(API key only)* |
+| FacturaE | 5 | all | `facturae:read` · `facturae:write` |
+| Company account | 4 | 3 | `account:read` · `account:write` *(API key only)* |
+| Developer settings & request logs | 4 | 0 | `developers:read` *(API key only)* |
+| Emails | 3 | 0 | `emails:read` *(API key only)* |
+| Holidays | 3 | all | `holidays:read` |
+| Notifications | 3 | all | `notifications:read` · `notifications:write` |
+| Presence | 3 | all | `presence:read` |
+| Users | 2 | all | `users:read` |
+| Agenda | 1 | all | `tasks:read` |
+| Consolidated panel (gestoría) | 1 | 0 | `companies:read` *(API key only)* |
+
+The rows are **measured, not hand-maintained**: the domain is the
+`App\Mcp\Tools\<Domain>` namespace of every tool the public MCP server actually
+publishes, and the scopes are those tools' declared `RequiredScope`, counted
+through the same code path that answers `tools/list` for a reference holder
+(enterprise plan, scope `*`; `php artisan public-api:export-stats`). Measured
+**2026-10-17** against backend `feat/epic-nif-axis-api` @ `e639f925ff`. Every
+scope belongs to the closed scope catalog of the contract; `clients:*` and
+`suppliers:*` are no longer in it, which is why those two rows are gone.
+
+`update_series` edits a series under the fiscal guards of the
+numbering: the code and mask are fixed once documents exist, the purpose once it
+has an invoice, and all numbering fields lock when the AEAT accepts a record; a
+series is never deleted, archive it.
 
 PDF downloads and payment receipts use the transversal `pdfs:read` scope;
 activity/event logs use `events:read`.
@@ -331,7 +367,10 @@ trial included. Create keys in the dashboard or connect over OAuth.
 
 1. **Read before you write.** Use `search_*` to find documents and `get_*` for
    full detail before mutating. To bill a customer, first `search_contacts` and
-   `search_products` (or `find_contact_by_tax_id`), then `create_invoice`.
+   `search_products` (or `find_contact_by_tax_id`), then `create_invoice`. There
+   is no `search_clients` / `create_client`: a customer is a **role** of a
+   contact (`roles: ["customer"]`), and so is a supplier — `assign_contact_role`
+   adds the other role to the same tax id instead of duplicating it.
 2. **Stay in the sandbox** until the flow is correct.
 3. **Use the discrete transition tool** for state changes, and surface the
    Spanish `message` (or map by `code`) when a tool returns an error.

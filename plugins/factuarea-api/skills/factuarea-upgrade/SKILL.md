@@ -12,6 +12,9 @@ Two sources, both live — never answer from memory:
 
 - **Live spec**: <https://api.factuarea.com/v1/openapi.json> (the same document
   the API serves; the `webhooks` block describes delivery headers and payloads).
+  The spec URL is itself a **root route** — it describes the whole v1 surface and
+  is identical for every credential, so it never takes a `/companies/{company}`
+  segment.
 - **Published SDK versions**: npm `@factuarea/sdk`, Packagist `factuarea/factuarea-php`.
   Read the registry, plus the repo's `CHANGELOG.md`, for what changed between the
   pinned version and the latest.
@@ -51,6 +54,73 @@ For each item, check the spec:
   value** → additive.
 - **Error `code` or status** the code branches on that no longer exists →
   breaking.
+
+Four shapes of drift are live right now and turn up in almost every report.
+Recognise them instead of rediscovering them:
+
+- **The company axis.** Company-scoped resources moved from the flat form to
+  `/v1/companies/{company}/…`, with `{company}` the company UUID. An operation
+  that looks *missing* under its flat path is usually present under the axis —
+  name the axis form as the documented replacement. Two families never take the
+  segment: the **root catalogs** (`/v1/openapi.json`, `/v1/event-catalog`,
+  `/v1/tax-catalog`, `/v1/payment-methods`, `/v1/payroll-export-formats`) and
+  **credential introspection** (`/v1/me`, which replaced `/v1/account`).
+  Account-level resources take the **account** axis instead —
+  `/v1/accounts/{account}/…`, e.g. `/v1/accounts/{account}/api-keys`. Never
+  repair drift by prefixing everything that contains `/v1/`: that breaks the
+  root catalogs in the opposite direction.
+- **Retired resources.** `clients` and `suppliers` are gone. They are **not**
+  re-anchored: `/v1/companies/{company}/clients` does not exist and answers
+  `404`. The replacement is `contacts` with a role —
+  `POST /v1/companies/{company}/contacts` with `roles: ["customer"]` or
+  `roles: ["supplier"]`, responses carrying `"object": "contact"`. The matching
+  scopes are `contacts:read|write|delete`; `clients:*` and `suppliers:*` are no
+  longer in the scope catalog.
+- **The account claim voucher became the NIF transfer.** The three claim-voucher
+  operations of an account — `public-api.v1.account.claim_tokens.list`,
+  `.create` and `.accept` — are **removed, not deprecated**. Each has a named
+  replacement, so name it in the finding:
+  `claim_tokens.list` → `public-api.v1.account.nif_transfers.list`
+  (`GET /v1/accounts/{account}/nif-transfers`), `claim_tokens.create` →
+  `public-api.v1.account.nif_transfers.create`
+  (`POST /v1/accounts/{account}/nif-transfers`) and `claim_tokens.accept` →
+  `public-api.v1.account.nif_transfers.accept`
+  (`POST /v1/accounts/{account}/nif-transfers/accept`). There is also a new
+  `public-api.v1.account.nif_transfers.revoke`. The scopes move with them
+  (`claim_tokens:read|write` → `nif_transfers:read|write`) and so do the errors
+  (`claim_token_expired` → `nif_transfer_expired`, `claim_token_invalid` →
+  `nif_transfer_invalid`). Do not read the surviving
+  `POST /v1/accounts/{account}/claim-tokens` as the old operation: it is
+  `public-api.v1.managed_accounts.claim_tokens.create`, which reissues the claim
+  voucher of a *managed* account and has nothing to do with moving a tax ID.
+- **The gestoría portfolio became the account model.** The old shape — a managing
+  company with child companies, switched with the `X-Active-Profile` header,
+  child API keys, and the gestoría module and seats — is gone. Nothing of it is
+  re-anchored: the header is retired and answers `parameter_unknown` with the
+  subcode `retired_active_profile_header`, because the request now names the tax
+  ID in the `{company}` segment. Replacements: the tax IDs of the account are
+  `public-api.v1.companies.list` and `public-api.v1.companies.create` under
+  `/v1/accounts/{account}/companies` (switch them on and off with
+  `public-api.v1.companies.activate` and `public-api.v1.companies.deactivate`);
+  the seat is the **additional NIF**, priced by
+  `public-api.v1.companies.seat_charge_preview`, with the errors
+  `gestoria_module_required` → `additional_nif_not_in_plan`,
+  `gestoria_plan_required` → `additional_nif_plan_required` and
+  `seat_charge_failed` → `additional_nif_charge_failed`; a client you provision
+  is a **managed account** (`public-api.v1.managed_accounts.create`); a client
+  that already has an account grants **access** from the web app, which has no
+  API route; a key limited to some tax IDs is issued with `scoped_company_ids` in
+  `public-api.v1.account.api_keys.create`. `public-api.v1.gestoria.workforce_summary`
+  was not removed: it moved to `GET /v1/accounts/{account}/gestoria/workforce-summary`.
+- **The root provisioning routes are not re-anchored.** `GET`/`POST /v1/accounts`
+  and the three `/v1/accounts/imports…` routes carry no `{account}` and never
+  will. Do not "repair" them by inserting your own account id, and in
+  `managed-accounts` do not replace `{account}` with it: there it names the
+  managed account.
+
+A report may quote the old flat path when it describes **what the code assumed
+before** — that is legitimate history. Label it as the previous form; never
+write it as a target.
 
 Live signal to look for in the user's logs or a probe request: the
 `Deprecation: true`, `Sunset:` and `Link: …; rel="deprecation"` response headers
@@ -143,9 +213,13 @@ renamed years ago or miss the one that broke them.
 
 ## Documentation (source of truth)
 
-- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json>
+- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json> — **root route**: it describes the whole v1 surface, so it takes no `/companies/{company}` segment
 - Versioning & deprecation policy: <https://docs.factuarea.com/guides/versioning>
-- Changelog: <https://docs.factuarea.com/changelog/launch>
+- Changelog: <https://docs.factuarea.com/changelog/launch> ·
+  account model: <https://docs.factuarea.com/changelog/account-model>
+- Account model: [accounts and tax IDs](https://docs.factuarea.com/guides/accounts-and-nifs) ·
+  [additional tax IDs](https://docs.factuarea.com/guides/additional-nifs) ·
+  [managed accounts](https://docs.factuarea.com/guides/managed-accounts)
 - SDKs: <https://docs.factuarea.com/sdks>
   ([TypeScript](https://docs.factuarea.com/sdks/typescript) ·
   [PHP](https://docs.factuarea.com/sdks/php))

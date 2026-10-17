@@ -3,9 +3,9 @@
 Connects [Claude Code](https://claude.com/claude-code) to the
 **[Factuarea](https://factuarea.com) MCP server** — the Factuarea public API
 exposed as tools for invoicing, quotes, pro-formas, delivery notes, transport
-control documents (DeCA), recurring & expenses, clients, suppliers, products,
-document series, taxes, VeriFactu (AEAT), tasks and projects, webhooks and a
-business dashboard for Spanish companies.
+control documents (DeCA), recurring & purchase invoices, contacts — customers and
+suppliers are roles of one contact — products, price lists, document series,
+taxes, VeriFactu (AEAT), tasks and projects, and webhooks for Spanish companies.
 
 The plugin ships two things:
 
@@ -64,13 +64,18 @@ automatically to guide those calls; you can also invoke it manually:
 
 - **Connecting** via OAuth (consent with company + environment selection) or an
   API key header.
-- **Channel policy** — an API key reaches the full catalog; OAuth uses a curated
-  subset, and never grants the owner-only operations (VeriFactu writes, GDPR
-  erasure, payments and stores, managed companies, API keys, privileged
-  workforce writes) to third-party apps. Live counts:
-  [MCP tools](https://docs.factuarea.com/mcp/tools).
-- **36 tool domains** and their scopes — tasks and projects (deleting them is
-  API-key only), users, notifications and the agenda among them — plus how
+- **Channel policy** — an API key with scope `*` reaches **613 tools**; OAuth reaches
+  **489**, because **124** sit behind scopes the consent catalog never grants —
+  account and credential administration, account
+  webhooks and request logs, `verifactu:write`,
+  connected stores, workforce actions taken on someone's behalf, and
+  irreversible operations such as `delivery_notes:gdpr_forget` or
+  `automations:delete`. Managed-account tools need the privileged scope
+  `accounts:*`, which `*` does not cover and OAuth never grants; bulk import of
+  managed accounts has no MCP tool.
+- **39 tool domains** with their tool counts, OAuth reach and scopes — tasks and
+  projects (deleting them is API-key only), users, notifications and the agenda
+  among them — plus how
   plan/module and feature flags further narrow what's listed.
 - **Transport control documents (DeCA)** — what the DeCA is (not a delivery
   note, an invoice or a VeriFactu record), its lifecycle (draft, issued,

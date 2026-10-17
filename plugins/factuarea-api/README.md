@@ -1,7 +1,8 @@
 # factuarea-api
 
 Skills for **building** on the [Factuarea](https://factuarea.com) public API —
-invoicing, quotes, clients, suppliers, products, VeriFactu (AEAT) and webhooks
+invoicing, quotes, contacts — customers and suppliers are roles of one
+contact — products, price lists, VeriFactu (AEAT) and webhooks
 for Spanish businesses.
 
 This plugin is about the code you write in **your own repository**. It declares
@@ -94,7 +95,7 @@ They load by context; you can also invoke one by name, e.g.
 ## Resources
 
 - Docs home: <https://docs.factuarea.com>
-- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json>
+- Live OpenAPI spec: <https://api.factuarea.com/v1/openapi.json> — **root route**: it describes the whole v1 surface, so it takes no `/companies/{company}` segment
 - SDKs: <https://docs.factuarea.com/sdks> —
   [TypeScript](https://docs.factuarea.com/sdks/typescript) ·
   [PHP](https://docs.factuarea.com/sdks/php)
