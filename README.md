@@ -75,9 +75,15 @@ Its skill covers:
 - **Tool domains** and their scopes, plus how plan/module and feature flags
   further narrow what's listed.
 - **Identity** — opaque `id` (UUID v7), foreign keys as `*_id`.
-- **Cursor pagination** — `{ data, has_more, next_cursor }`, no page numbers.
-- **Errors** — `insufficient_scope`, `addon_not_active`, `422` business-rule
-  violations, `429` with `Retry-After`.
+- **Cursor pagination** — `{ data, has_more, next_cursor }`, no page numbers
+  (the template, brand and presentation-history lists are offset lists with
+  `page` / `per_page`).
+- **Errors** — a failure inside a tool is a result with `isError: true` whose
+  `_meta["com.factuarea/error"]` carries the REST error contract (`code`,
+  `http_status`, `hint`, …); the checks that run before the tool answer a
+  JSON-RPC error with the same `code`. Then `insufficient_scope`,
+  `module_not_in_plan`, `422` business-rule violations and `429` with
+  `Retry-After`.
 - **Test mode** — the `fact_test_` prefix / test OAuth grant points at an
   isolated sandbox with external effects switched off.
 
@@ -93,7 +99,7 @@ Its skill covers:
 
 ### `factuarea-api` — where to start
 
-- **Ten golden rules**, each pointing at the skill that goes deep on it.
+- **Fourteen golden rules**, each pointing at the skill that goes deep on it.
 - **Documentation lookup that stays on the machine** — `factuarea docs
   list|grep|get` downloads the published corpus once, caches it for 15 minutes
   and filters **locally**: no API key, and the search term never leaves the
@@ -109,9 +115,14 @@ Its skill covers:
 - **Choosing the SDK** — `@factuarea/sdk` (Node 20+) or `factuarea/factuarea-php`
   (PHP 8.2+), and what you take on by hand-rolling HTTP instead.
 - **Contract invariants** — opaque UUID v7 `id`s, the `data` envelope, cursor
-  pagination (`has_more` / `next_cursor`, never page numbers), `Idempotency-Key`
+  pagination (`has_more` / `next_cursor`; only the template, brand and
+  presentation-history lists use `page` / `per_page`), `Idempotency-Key`
   on writes, and the key prefix as the only environment switch.
 - **Server-side only** — why there is no browser-safe key, and sandbox first.
+- **Conditional writes and PDFs** — `If-Match`, `If-None-Match`, `202`/`304`, no-retry
+  FACe submissions and omitted vs `null`, with the real SDK and CLI options. The
+  PHP SDK's typed methods for the new operations are not generated yet: the recipe
+  uses `RawRequest`, `RequestOverrides`, `ResponseMeta` and `NoRetry`.
 
 ### `factuarea-webhooks` — receiving deliveries
 
@@ -126,8 +137,11 @@ Its skill covers:
 
 ### `factuarea-audit` — reviewing what's already written
 
-- **Six rule families** — webhook signature, idempotency, API-key exposure, error
-  handling by `code`, rate limits, document lifecycle.
+- **Seven rule families** — webhook signature, idempotency, API-key exposure, error
+  handling by `code`, rate limits, document lifecycle, conditional writes and PDF
+  downloads.
+- **A CE01 to CE25 checklist** for the client flows of the PDF template contract,
+  each with its own severity; flows the integration does not use are "not used".
 - **Findings with a severity, a `file:line` and a concrete fix** — and explicit
   exemptions per rule, so code that already does the right thing isn't flagged.
 
@@ -136,7 +150,8 @@ Its skill covers:
 - **Drift detection** against the live spec and the published SDK versions.
 - **Breaking vs additive** by the published versioning policy, including how a
   dated `Factuarea-Version` pin changes the answer.
-- **An ordered plan** — breaking first, verified in the sandbox.
+- **An ordered plan** — breaking first, verified in the sandbox, with a checklist
+  for the PDF template, presentation and business-data contract.
 
 ## Resources
 
@@ -152,6 +167,29 @@ Its skill covers:
 - CLI: <https://docs.factuarea.com/cli>
 - Dashboard / API keys: <https://app.factuarea.com/settings/developers/api-keys>
 - Support: <https://docs.factuarea.com/support> · contact: `info@factuarea.com`
+
+## Validate the skills
+
+```bash
+python3 scripts/validate_plugins.py                      # manifests and skill frontmatter (CI)
+python3 scripts/test_document_template_contracts.py \
+  --spec <openapi.json> --mcp-catalog <mcp-catalog.json> \
+  --error-catalog <error-catalog.json> \
+  [--stats <stats.json> --mcp-tools <mcp-tools.json>] [--php-src <factuarea-php>/src]
+```
+
+The second script needs no dependency and no network. It fails when a skill or
+README cites an `operationId`, a `METHOD /path`, a scope, an error code (or a
+known code with a status the catalog does not give it), an MCP tool, a contract
+header or (with `--php-src`) a PHP SDK method or helper that the files you pass
+do not contain, when a company resource is cited without its
+`/companies/{company}` segment, and when `factuarea-audit` does not list exactly
+the client flows CE01 to CE25. With `--stats` and `--mcp-tools` it also checks
+every tool and domain count and every row of the MCP domain table against the
+measured catalog. The input files (the OpenAPI document is about 24 MB) are
+deliberately **not** copied into this repository: pass the ones that match the
+contract you are documenting, so a copy cannot drift from the source. It is a
+local check; CI runs only `validate_plugins.py`.
 
 ## Releasing
 

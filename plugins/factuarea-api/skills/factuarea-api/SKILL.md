@@ -21,7 +21,10 @@ are replaced by `contacts` with the right role.
 Company-scoped resources hang off the **company axis**,
 `https://api.factuarea.com/v1/companies/{company}/…`, with `{company}` the
 company UUID; account-scoped ones off `…/v1/accounts/{account}/…`. The root
-catalogs and the credential introspection (`/v1/me`) take neither. Never assume
+catalogs and the credential introspection (`/v1/me`) take neither. The PDF
+template library, the brands, previews and artifacts, and the presentation of
+each document are company resources too: they exist only under
+`/v1/companies/{company}/…`, never at the root. Never assume
 a resource exists because the domain suggests it should: look its exact
 operations up the same way as any other.
 
@@ -107,7 +110,7 @@ Two more surfaces belong to the account:
 
 ## The golden rules
 
-Ten rules. Breaking any of them produces an integration that demos fine and
+Fourteen rules. Breaking any of them produces an integration that demos fine and
 fails in production. Each one names the skill that goes deep on it.
 
 1. **Never invent.** Not a resource, not a field, not an enum value, not a
@@ -124,7 +127,12 @@ fails in production. Each one names the skill that goes deep on it.
 6. **IDs are opaque UUID v7 under `id`.** Never parse them, never generate one,
    never assume they sort or that they are integers. → `factuarea-implement`
 7. **Paginate by cursor**, never by page number: `{ data, has_more,
-   next_cursor }`. → `factuarea-implement`
+   next_cursor }`. Three families of lists are the declared exception and use
+   `page` / `per_page` (at most 100) with `meta: { page, per_page, total }`:
+   `GET /v1/companies/{company}/pdf-templates` and
+   `GET /v1/companies/{company}/pdf-commercial-identities` (items under `items`)
+   and `GET /v1/companies/{company}/{invoices|quotes|proformas|delivery-notes}/{id}/presentation-history`
+   (items under `data`). → `factuarea-implement`
 8. **Branch on `error.code`, never on the message** — messages are localised and
    will change. Log `error.request_id` on every failure. → `factuarea-audit`
 9. **Documents have a lifecycle.** Move them with the named transition; never
@@ -132,6 +140,69 @@ fails in production. Each one names the skill that goes deep on it.
    corrective one. → `factuarea-audit` (`FCT-DOC-*`)
 10. **Verify the webhook signature over the raw body before doing anything
     else**, and deduplicate by `Factuarea-Event-Id`. → `factuarea-webhooks`
+11. **Omitted is not `null`.** On `PATCH`/`PUT` an absent key keeps the stored
+    value and an explicit `null` clears it (`pdf_template_id: null` goes back to
+    inheriting, `payment_terms: null` removes the schedule, on a draft only). Send
+    `null` only when the user means to clear, never as "no value", and never
+    serialize `undefined` or an unset model property as `null`. `[]` replaces a
+    list with an empty one. The template and presentation fields (`pdf_template_id`,
+    `expected_selection_version`, `presentation_precondition(s)`,
+    `presentation_policy`) only take effect when the company has revisioned
+    presentation active; otherwise the API ignores them, as it did before.
+    → `factuarea-implement`, `factuarea-audit`
+12. **Conditional writes: `ETag` + `If-Match`.** Operations that declare it
+    (defaults, templates, brands, document presentation, series template) return a
+    strong `ETag` on `GET` and want it back as `If-Match`, literally, quotes
+    included. `412` = the tag is stale (declared on defaults, contact defaults, templates,
+    brands, document presentation and the series template); `428` = a mandatory precondition (tag,
+    `expected_version` or the presentation precondition) was missing; `409` = the
+    version (`expected_version`, `expected_selection_version`, an impact
+    fingerprint) moved. Recover by `GET`ting again, re-checking the intent and
+    retrying with the fresh value; never retry the same request and never invent
+    a version. → `factuarea-implement`
+13. **PDF downloads have five outcomes.** `200` binary (keep the `ETag`), `202`
+    JSON on the document downloads (`GET /v1/companies/{company}/{invoices|quotes|proformas|delivery-notes}/{id}/pdf`:
+    `pdf_output_state` and `Retry-After`; not ready, or a failed render that can
+    be retried and that this request claimed again, so wait and repeat the same
+    request, bounded), `304` when you sent `If-None-Match` with the current tag
+    (use your copy), and `503` with `Retry-After` for an artifact not ready
+    (`pdf_artifact_not_ready` on `GET /v1/companies/{company}/pdf-artifacts/{artifact}/download`, and on
+    previews, `prepare`, `render`, the four document `.../pdf` and `pdf-link` while
+    another request prepares the same PDF; a document download can also answer
+    `503 pdf_generation_failed`), and `500` when no render can produce that PDF
+    (a terminal render failure, or an original that is missing, corrupt or whose
+    layout this release no longer serves: `pdf_original_unavailable`,
+    `pdf_original_corrupt`, `pdf_original_layout_unavailable`), which is terminal
+    for that PDF. Never treat a `202` body as a PDF, never prepare or render again
+    to speed it up, re-read on a `409` (`pdf_presentation_conflict` or
+    `pdf_presentation_context_changed`, on any of the four documents), answer an
+    invoice's `409 pdf_legal_source_changed` with a presentation revision, and stop on
+    `410`. → `factuarea-implement`, `factuarea-audit`
+14. **Take URLs and tokens as returned.** `public_url`, `download_url` and
+    `metadata_url` are opaque: store and hand them over unchanged, never rebuild
+    them from an id (`public_url` is `null` unless `publication.state` is
+    `ready`; for artifacts call `GET /v1/companies/{company}/pdf-artifacts/{artifact}/download`).
+    The link's own `url` carries no version selector: it opens the latest
+    version shared publicly (the live document when the company has no
+    revisioned presentation), so it follows each new publication, while
+    `publication.public_url` pins one exact version.
+    Selecting a template on a document is `pdf_template_id` plus
+    `expected_selection_version`, both present or both absent on an update (the
+    version is the compare-and-set of the selection, not a field to invent).
+    → `factuarea-audit`
+
+`Idempotency-Key` (rule 5) is **required**, not just recommended, on
+`POST /v1/companies/{company}/pdf-template-previews`,
+`POST /v1/companies/{company}/pdf-artifacts`,
+`POST /v1/companies/{company}/pdf-artifacts/{artifact}/render` and
+`POST /v1/companies/{company}/pdf-templates/assets`; without it they answer
+`422 idempotency_key_required`. The other library and presentation writes accept
+it and should send it. A replay answers the stored result with
+`Idempotent-Replayed: true` before any version check; the same key with a
+different body answers `422 idempotency_key_reused`, and while the first request
+is still running, `409 idempotency_key_in_use`. A new intention (for example
+retrying a `failed` render) needs a **new** key. See
+[Idempotency](https://docs.factuarea.com/guides/idempotency).
 
 ## Where to look things up
 
@@ -261,9 +332,11 @@ then build the receiver: verify the HMAC over the raw body, dedupe by
 locally with `factuarea listen --forward-to http://localhost:3000/webhooks` and
 `factuarea trigger invoice.paid` (sandbox only). → **`factuarea-webhooks`**
 
-**"Is this integration ready for production?"** Six rule families — webhook
+**"Is this integration ready for production?"** Seven rule families — webhook
 signature, idempotency, key exposure, error handling, rate limits, document
-lifecycle — each finding with a severity, a `file:line` and the fix.
+lifecycle, conditional writes and PDFs — plus the CE01 to CE25 checklist of
+client flows for the PDF template contract, each finding with a severity, a
+`file:line` and the fix.
 → **`factuarea-audit`**
 
 **"Something changed on your side"** — a deprecation notice, an SDK bump, a
@@ -340,7 +413,11 @@ account the code is writing to.
   [idempotency](https://docs.factuarea.com/guides/idempotency) ·
   [errors](https://docs.factuarea.com/guides/errors) ·
   [webhooks](https://docs.factuarea.com/guides/webhooks) ·
-  [versioning](https://docs.factuarea.com/guides/versioning)
+  [versioning](https://docs.factuarea.com/guides/versioning) ·
+  [document templates](https://docs.factuarea.com/guides/document-templates) ·
+  [PDF previews and artifacts](https://docs.factuarea.com/guides/pdf-template-previews) ·
+  [document presentations](https://docs.factuarea.com/guides/document-presentations) ·
+  [invoice business data](https://docs.factuarea.com/guides/invoice-business-data)
 - Account model: [accounts and tax IDs](https://docs.factuarea.com/guides/accounts-and-nifs) ·
   [additional tax IDs](https://docs.factuarea.com/guides/additional-nifs) ·
   [granted access](https://docs.factuarea.com/guides/granted-access) ·
