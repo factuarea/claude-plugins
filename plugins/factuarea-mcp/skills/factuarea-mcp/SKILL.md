@@ -1,6 +1,6 @@
 ---
 name: factuarea-mcp
-description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, transport control documents (DeCA), recurring & purchase invoices, contacts (customers and suppliers are roles of one contact), products, price lists, document series, taxes, VeriFactu (AEAT), tasks and projects, and webhooks for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their accounting data — search/create/send invoices, manage contacts, issue the DeCA for a road freight transport, follow tasks and projects, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, the error envelope, and test (sandbox) mode.
+description: Operate the Factuarea MCP server — invoicing, quotes, pro-formas, delivery notes, transport control documents (DeCA), recurring invoices & expenses, contacts (customers and suppliers are roles of one contact), products, price lists, document series, taxes, VeriFactu (AEAT), FacturaE, tax reports, PDF templates and per-document presentation, time tracking, tasks and projects, automations and webhooks for Spanish companies. Use this when the user has the Factuarea MCP connected (or wants to connect it) and asks Claude to read or act on their business data — search/create/send invoices, manage contacts, choose or revise the PDF template of a document, issue the DeCA for a road freight transport, follow tasks and projects, check VeriFactu, configure webhooks — and to interpret scopes, cursor pagination, tool errors (`isError` results with their `_meta` contract), ETag/CAS preconditions, pending PDFs, and test (sandbox) mode.
 ---
 
 # Factuarea MCP server
@@ -61,13 +61,17 @@ The catalog is the same set of tools, but the two channels resolve a **different
 maximum reach**:
 
 - **API key (owner's own key, scope `*`)** → the whole catalog a `*` holder
-  sees, **613 tools**. The owner is acting on their own account, so the key can
+  sees, **664 tools**. The owner is acting on their own account, so the key can
   cover everything, including the privileged operations below. The managed-account
   tools (provisioning, plan changes, ending a management) are
   **not** in that figure: they need the privileged scope `accounts:read` /
   `accounts:write`, which `*` does **not** cover, so they only appear for a key
   that carries `accounts:*`, granted by a superadmin. OAuth never grants it.
-- **OAuth (third-party app, curated scopes)** → **489 tools**. The remaining
+  The account-administration tools (members, invitations, NIF transfers and the
+  ownership transfer) are outside the figure too: their scopes (`members:*`,
+  `invitations:*`, `nif_transfers:*`, `account:owner`) must be granted one by
+  one, because `*` does not cover them either.
+- **OAuth (third-party app, curated scopes)** → **540 tools**. The remaining
   **124** are unreachable by consent: the OAuth scope catalog has no dotted
   scope that translates to them, so a third-party app can never reach them on
   the user's behalf. They fall into five groups:
@@ -106,6 +110,18 @@ Beyond the channel, the tools you see in `tools/list` are further narrowed by:
 - the company's **subscription plan / module**; and
 - **feature flags**.
 
+So an OAuth session with read-only scopes on an Esencial (`emprendedor`) plan will list far
+fewer than 540 tools — that's expected, not an error.
+
+**Discovery is `tools/list`, nothing else.** The tools a session sees depend on
+its scopes, the plan and the active modules (for example the template and brand
+write tools need the `pdf_templates` module, while their reads, `preview_pdf_template`
+and the artifact tools do not). Do not assume a tool exists because this skill
+or a guide names it: list first, and if it is missing, report which scope or
+module would unlock it instead of improvising another tool. The counts below
+measure the whole catalog on a given date; they never tell you what the current
+session can call.
+
 ## Product terminology and stable contracts
 
 The product calls purchases **Expenses** (ES: Gastos; CA: Despeses) and sales
@@ -116,44 +132,42 @@ Resource names such as `purchase_invoices`, scopes, event IDs, tool names, SDK
 methods and routes stay unchanged. Never invent an `expenses` resource or rename
 a tool to match a display label.
 
-So an OAuth session with read-only scopes on an Esencial (`emprendedor`) plan will list far
-fewer than 489 tools — that's expected, not an error.
-
-## Tool domains (39)
+## Tool domains (41)
 
 Tools are named `<verb>_<noun>` (e.g. `search_invoices`, `create_contact`,
 `mark_invoice_as_paid`). **Tools** is what an API key with scope `*` sees;
 **OAuth** is what a consent grant can reach (`all` when the whole domain is
 reachable).
 
-The catalog is **613 tools** across **39 domains**, of which **489** are
+The catalog is **664 tools** across **41 domains**, of which **540** are
 reachable by an OAuth consent grant and **124** are API-key only. Privileged
-`accounts:*` tools (managed accounts) are outside these figures: only a
-credential with that scope sees them.
+`accounts:*` tools (managed accounts) and the account-administration tools are
+outside these figures: only a credential granted those scopes sees them.
 
 | Domain | Tools | OAuth | Scopes |
 | --- | ---: | ---: | --- |
 | Tasks | 52 | 46 | `tasks:delete` *(API key only)* · `tasks:read` · `tasks:write` |
-| Invoices | 45 | all | `invoices:delete` · `invoices:read` · `invoices:send` · `invoices:void` · `invoices:write` · `pdfs:read` |
+| Invoices | 51 | all | `invoices:delete` · `invoices:read` · `invoices:send` · `invoices:void` · `invoices:write` · `pdfs:read` |
 | Products | 40 | all | `products:delete` · `products:read` · `products:write` |
 | VeriFactu | 31 | 20 | `verifactu:read` · `verifactu:write` *(API key only)* |
 | Time tracking | 29 | 17 | `payroll_exports:read` · `time_entries:read` · `time_entries:write` *(API key only)* |
 | Contacts | 28 | all | `contacts:delete` · `contacts:read` · `contacts:write` |
 | Connected stores & integrations | 26 | 0 | `integration_events:read` *(API key only)* · `integration_events:write` *(API key only)* · `payouts:read` *(API key only)* · `shopify_store:write` *(API key only)* · `stores:read` *(API key only)* · `stores:write` *(API key only)* · `stripe_autoinvoicing:read` *(API key only)* · `stripe_autoinvoicing:write` *(API key only)* · `woocommerce_store:write` *(API key only)* |
+| Delivery notes | 26 | 25 | `delivery_notes:delete` · `delivery_notes:gdpr_forget` *(API key only)* · `delivery_notes:read` · `delivery_notes:transition` · `delivery_notes:write` · `pdfs:read` |
 | Absences | 25 | 10 | `absences:read` · `absences:transition` *(API key only)* · `absences:write` *(API key only)* |
-| Delivery notes | 22 | 21 | `delivery_notes:delete` · `delivery_notes:gdpr_forget` *(API key only)* · `delivery_notes:read` · `delivery_notes:transition` · `delivery_notes:write` · `pdfs:read` |
+| PDF templates & brands | 25 | all | `pdf_templates:read` · `pdf_templates:write` |
+| Pro-formas | 24 | all | `pdfs:read` · `proformas:delete` · `proformas:read` · `proformas:send` · `proformas:transition` · `proformas:write` |
+| Quotes | 24 | all | `pdfs:read` · `quotes:delete` · `quotes:read` · `quotes:send` · `quotes:transition` · `quotes:write` |
 | Projects | 22 | 19 | `projects:delete` *(API key only)* · `projects:read` · `projects:write` · `invoices:write` |
-| Pro-formas | 20 | all | `pdfs:read` · `proformas:delete` · `proformas:read` · `proformas:send` · `proformas:transition` · `proformas:write` |
-| Quotes | 20 | all | `pdfs:read` · `quotes:delete` · `quotes:read` · `quotes:send` · `quotes:transition` · `quotes:write` |
 | Purchase invoices | 19 | all | `pdfs:read` · `purchase_invoices:delete` · `purchase_invoices:read` · `purchase_invoices:transition` · `purchase_invoices:write` |
+| Recurring invoices | 19 | all | `recurring_invoices:delete` · `recurring_invoices:read` · `recurring_invoices:transition` · `recurring_invoices:write` |
 | Automations | 18 | 17 | `automation_runs:read` · `automations:delete` *(API key only)* · `automations:read` · `automations:write` |
 | Employees | 18 | all | `employees:read` · `employees:write` |
-| Recurring invoices | 18 | all | `recurring_invoices:delete` · `recurring_invoices:read` · `recurring_invoices:transition` · `recurring_invoices:write` |
 | Taxes | 18 | all | `taxes:delete` · `taxes:read` · `taxes:write` |
 | Account NIFs & usage | 15 | 1 | `account:read` · `companies:delete` *(API key only)* · `companies:read` *(API key only)* · `companies:write` *(API key only)* |
+| Series | 15 | all | `series:read` · `series:write` |
 | Transport control documents (DeCA) | 15 | all | `pdfs:read` · `transport_documents:delete` · `transport_documents:read` · `transport_documents:transition` · `transport_documents:write` |
 | Price lists | 13 | all | `price_lists:read` · `price_lists:write` |
-| Series | 13 | all | `series:read` · `series:write` |
 | Webhooks & events | 13 | all | `events:read` · `webhooks:delete` · `webhooks:read` · `webhooks:write` |
 | Employee seats | 11 | all | `employees:read` · `employees:write` |
 | Work schedules | 11 | 5 | `work_schedules:read` · `work_schedules:write` *(API key only)* |
@@ -163,6 +177,7 @@ credential with that scope sees them.
 | API keys | 7 | 3 | `account:read` · `account:write` *(API key only)* |
 | Additional-NIF offer redemptions | 6 | 0 | `companies:read` *(API key only)* · `companies:write` *(API key only)* |
 | FacturaE | 5 | all | `facturae:read` · `facturae:write` |
+| PDF previews & artifacts | 5 | all | `pdfs:read` · `pdf_templates:read` |
 | Company account | 4 | 3 | `account:read` · `account:write` *(API key only)* |
 | Developer settings & request logs | 4 | 0 | `developers:read` *(API key only)* |
 | Emails | 3 | 0 | `emails:read` *(API key only)* |
@@ -178,21 +193,174 @@ The rows are **measured, not hand-maintained**: the domain is the
 publishes, and the scopes are those tools' declared `RequiredScope`, counted
 through the same code path that answers `tools/list` for a reference holder
 (enterprise plan, scope `*`; `php artisan public-api:export-stats`). Measured
-**2026-10-17** against backend `feat/epic-nif-axis-api` @ `e639f925ff`. Every
+**2026-10-18**, with the PDF template, presentation and artifact tools. Every
 scope belongs to the closed scope catalog of the contract; `clients:*` and
 `suppliers:*` are no longer in it, which is why those two rows are gone.
+`preview_pdf_template` is the only tool that needs two scopes at once
+(`pdfs:read` and `pdf_templates:read`).
+
+Some tools also need a module of the company's plan, on top of the scope:
+
+| Module | Tools |
+| --- | --- |
+| `pdf_templates` | the 14 writes of the template and brand library (`create_`, `update_`, `duplicate_`, `archive_`, `restore_` and `publish_…_revision` of `pdf_template` and `pdf_commercial_identity`, `set_pdf_template_defaults`, `set_pdf_template_contact_default`, `upload_pdf_template_asset`); its reads do not |
+| `series_settings` | `assign_series_pdf_template` |
+| `invoices`, `quotes`, `proformas`, `delivery_notes` | the presentation tools of that document (`get_`, `list_`, `assign_`, `revise_…_presentation`), plus `list_invoice_administrative_revisions` and `revise_invoice_administrative_routing` for invoices |
+| `facturae` | `send_invoice_to_face`, `cancel_face_submission`, `get_face_submission`, `list_invoice_face_submissions`, `get_invoice_facturae_link` |
+| `recurring_invoices` | `generate_recurring_invoice` |
+| `control_horario` | the `*_employee_batch` tools and the `*_employee_seat_offer_redemption` tools |
+| `gestoria` | the `*_gestoria_seat_offer_redemption` tools |
 
 `update_series` edits a series under the fiscal guards of the
 numbering: the code and mask are fixed once documents exist, the purpose once it
 has an invoice, and all numbering fields lock when the AEAT accepts a record; a
 series is never deleted, archive it.
 
-PDF downloads and payment receipts use the transversal `pdfs:read` scope;
-activity/event logs use `events:read`.
+PDF downloads, PDF artifacts and payment receipts use the transversal
+`pdfs:read` scope; activity/event logs use `events:read`. Choosing or revising
+the presentation of a document uses the scopes the document already has
+(`invoices:write`, `quotes:write`, `proformas:write`, `delivery_notes:write`,
+`series:write`).
 
 The counts above are a snapshot and the catalog grows. **Discover the tools at
 runtime with `tools/list`**: it is the authoritative list for the current
 session, and a tool missing from this table is not missing from the server.
+
+### PDF templates, presentation and artifacts
+
+The company keeps a library of PDF **templates** and **commercial identities**
+(brands), and every invoice, quote, pro-forma and delivery note has a
+**presentation**: which template, brand and paper format its PDF uses. Concepts
+and exact fields live in the guides:
+[templates](https://docs.factuarea.com/guides/document-templates) ·
+[previews and artifacts](https://docs.factuarea.com/guides/pdf-template-previews) ·
+[document presentations](https://docs.factuarea.com/guides/document-presentations) ·
+[invoice business data](https://docs.factuarea.com/guides/invoice-business-data).
+Tool families (names as in `tools/list`; read each input schema before calling):
+
+| Family | Tools | Scopes |
+| --- | --- | --- |
+| Template library | `list_pdf_templates`, `get_pdf_template`, `create_pdf_template`, `update_pdf_template` (name and description only), `publish_pdf_template_revision`, `duplicate_pdf_template`, `archive_pdf_template`, `restore_pdf_template`, `get_pdf_template_impact`, `get_pdf_template_revision` | `pdf_templates:read` / `:write` |
+| Brands | the same verbs with `pdf_commercial_identity` / `pdf_commercial_identities` (`create_`, `update_`, `publish_…_revision`, `archive_`, `restore_`, `get_…_impact`, `get_…_revision`, `list_`, `get_`) | `pdf_templates:read` / `:write` |
+| Defaults and assets | `get_pdf_template_defaults`, `set_pdf_template_defaults`, `get_pdf_template_contact_default`, `set_pdf_template_contact_default`, `upload_pdf_template_asset`, `get_pdf_template_asset`. `set_pdf_template_defaults` also admits the «control documents» default (`type_defaults` entry `transport-document` / `complete`), which only accepts templates whose `document_kind` is `transport-document` (control templates, so `commercial` ones are rejected), and every version in `get_transport_document` carries a read-only `presentation` with the design it was painted with | `pdf_templates:read` / `:write` |
+| Series template | `get_series_pdf_template`, `assign_series_pdf_template` (needs the `series_settings` module) | `series:read` / `series:write` |
+| Document presentation | `get_invoice_presentation`, `list_invoice_presentations`, `assign_invoice_presentation`, `revise_invoice_presentation` and the same four for `quote`, `proforma` and `delivery_note` (`get_quote_presentation`, `list_delivery_note_presentations`, `revise_proforma_presentation`, …); `list_invoice_administrative_revisions`, `revise_invoice_administrative_routing` | the document's own scopes (and its module) |
+| Preview and artifacts | `preview_pdf_template`, `prepare_pdf_artifact`, `render_pdf_artifact`, `get_pdf_artifact`, `read_pdf_artifact` | `pdfs:read` (+ `pdf_templates:read` for the preview) |
+
+Rules that keep you out of trouble:
+
+- **Never guess the library state.** List templates and read the document's
+  presentation (`get_*_presentation`) before assigning anything. The state tells
+  you `can_select`, `can_revise` and the versions to send back.
+- **Versions replace headers.** MCP has no `If-Match`: send `expected_version`
+  (or `expected_selection_version` on a document create/update) as the tool
+  argument, taken from the last read. Publishing, archiving and restoring a
+  template or brand also asks for the `expected_impact_fingerprint` of
+  `get_*_impact`: read the impact first, show the user which defaults, series,
+  contacts or recurring invoices it touches, and only then call. Archive takes
+  one decision per association; do not invent them.
+- **Recovering from a precondition failure.** `412` (tag mismatch) and `409`
+  (`*_version_conflict`, `pdf_presentation_conflict`, `pdf_library_impact_conflict`)
+  mean the state moved after you read it: read again, re-evaluate whether the
+  user's intent still holds, then retry with the fresh version. Do not loop with
+  the old value and never "fix" it by guessing a higher number. `409
+  pdf_presentation_context_changed` means the document, template or brand changed
+  after the preview: preview again.
+- **`428` is a request for proof, not an error to bypass.** Issuing, sending,
+  or accepting a document can answer
+  `pdf_presentation_precondition_required` when revisioned presentation is active
+  for the company. Call `preview_pdf_template` with `source.kind:
+  "persisted_draft"` and the `document_id`, then pass the seven fields it returns
+  (`expected_selection_version`, `expected_source_token`,
+  `expected_preview_context_fingerprint`, `expected_template_revision_id`,
+  `expected_commercial_identity_revision_id`, `purpose`, `format`) as the send or
+  issue tool's schema declares them. Show the user what will be delivered first.
+  The bulk send and bulk status tools of quotes, pro-formas and delivery notes take
+  `presentation_preconditions` as a map from each document UUID (it must be in `ids`)
+  to its own seven-field precondition, with `purpose` `complete` and `format` `a4`;
+  for delivery notes only when delivering.
+  `accept_quote` and `accept_proforma` need the seven fields only for the
+  document's **first capture**. One that already has a retained capture (shared
+  as a draft, for example) is accepted without them; pass the capture the user
+  reviewed as `expected_presentation_uuid` if you have it, and a `409
+  pdf_presentation_conflict` then means it is no longer the current one: read
+  again and ask, nothing was written.
+  If the company has not activated revisioned presentation, those arguments are
+  ignored and the call behaves as before; the visual actions themselves (assign or
+  revise a presentation, artifacts) answer `422 pdf_presentation_not_ready`, which
+  is a company state, not something to retry.
+- **Omitted is not `null`.** On updates an absent field keeps its value and an
+  explicit `null` clears it (`pdf_template_id: null` goes back to inheriting;
+  `payment_terms: null` removes the schedule of a draft; `[]` means explicitly no
+  schedule). Send `null` only when the user asked to clear. Business data of an issued invoice is frozen; only its administrative
+  routing can be revised.
+- **With instalments, `due_on` is the last one.** When an invoice has a
+  non-empty `payment_terms`, it falls due on the date of its last instalment:
+  send that date as `due_on` in `create_invoice`, and in `update_invoice` either
+  send it or omit `due_on` while replacing `payment_terms` so it is taken from the
+  schedule. A draft stores a different date, but issuing it (`issue_invoice`, or
+  `create_invoice` with issuing options), scheduling it (`schedule_invoice`) or
+  rescheduling it (`reschedule_invoice`) answers
+  `422 invoice_due_date_not_last_instalment`. Nothing changes: the invoice stays
+  a draft, or keeps its scheduled date. Fix `due_on` or the instalment dates and
+  try again. `duplicate_invoice` dates the new draft today and moves every
+  instalment by the days between both issue dates, each keeping its amount, so
+  `due_on` is the last moved instalment: review the dates with the user before
+  issuing the copy.
+- **Assets travel as base64.** `upload_pdf_template_asset` takes `kind`
+  (`logo` or `imago`), `image_base64` (JPEG, PNG or WebP, at most 2048 KiB once
+  decoded), `mime` and `filename`; REST uses `multipart/form-data` for the same
+  operation (`POST /v1/companies/{company}/pdf-templates/assets`). Do not paste a large image through
+  the conversation: if it does not fit, tell the user to upload it with the REST
+  API or the dashboard and give you the `asset id`.
+- **Brands on dark backgrounds and brand size.** A brand revision
+  (`create_pdf_commercial_identity`, `publish_pdf_commercial_identity_revision`,
+  or the unsaved brand of `preview_pdf_template`) can carry a version of each
+  image for dark backgrounds: `logo_dark_asset_id` (an asset of kind `logo`,
+  only next to `logo_asset_id`) and `brand_image_dark_asset_id` (kind `imago`,
+  only next to `brand_image_asset_id`). Without one, on a dark background where
+  the brand does not contrast, `dark_background_fallback` decides: `silhouette`
+  (the default, a white silhouette drawn automatically) or `plate` (the brand on
+  a light plate). `brand_size` (`small`, `medium` by default, or `large`) is the
+  brand's default size, and a template uses it when its `branding.size` is
+  `inherit`, the default for new templates; a template that sets its own size
+  keeps it. Offer these only when the user asks about dark designs or logo size;
+  never upload a dark version they did not provide.
+- **PDFs can be pending.** `get_*_pdf` and `render_pdf_artifact` may answer a
+  non-ready state (`prepared`, `queued`, `processing`) with `retry_after` seconds,
+  not the file. Wait that long, repeat the same read (`get_pdf_artifact`) and stop
+  after a bounded number of attempts; do not call `prepare_pdf_artifact` or
+  `render_pdf_artifact` again to speed it up. A `get_*_pdf` whose earlier render
+  failed in a way that can be retried claims it again by itself instead of
+  repeating the old failure: it answers `queued`, the download link or the new
+  outcome, so repeat the same call after `retry_after`, bounded.
+  `failed` with `error.retryable: true` in `get_pdf_artifact` is the only case for
+  a new `render_pdf_artifact` with a new `idempotency_key`. Terminal: a PDF that
+  no render can produce fails with its code and `http_status` `500`
+  (`pdf_engine_profile_unavailable`, `pdf_payload_resource_unavailable`,
+  `pdf_image_resource_unavailable`, `pdf_original_unavailable`,
+  `pdf_original_corrupt` or `pdf_original_layout_unavailable`), and
+  `pdf_signature_personal_data_forgotten` (`410`).
+  `read_pdf_artifact` returns an authorized link, not bytes. A preview expires
+  after 24 hours and is never the official PDF.
+- **Public links.** `update_*_public_link` with `action: "publish"` requires
+  `publication_context` (`presentation_id` and `expected_binding_version` from the
+  document's `presentation` block). Hand the user `publication.public_url` exactly
+  as returned, and only when `publication.state` is `ready`; never build a URL
+  from an id. Treat every `download_url` the same way. The link's own `url` has
+  no version selector and opens the latest version shared publicly, so it
+  follows each new publication; `publication.public_url` pins one version. Give
+  the user the one that matches what they asked for.
+- **FACe.** `send_invoice_to_face` (module `facturae`) creates a durable attempt
+  identified by `submission_id`. If it fails with `face_transmission_failed`,
+  `face_submission_completion_failed` or answers `409
+  face_transmission_uncertain`, the invoice may already be at FACe: **do not call
+  it again blindly and do not make up a new `submission_id`**. Keep the
+  `attempt_id` from `error.details`, read the attempt with `get_face_submission` /
+  `list_invoice_face_submissions` and act on its `status` (see the
+  [FACe guide](https://docs.factuarea.com/guides/face-invoicing)). A
+  `transmission_uncertain` attempt is reconciled by Factuarea; the user contacts
+  support.
 
 ### Transport control documents (DeCA)
 
@@ -284,10 +452,13 @@ scan and what will happen. A `429` with code `ocr_company_quota_exceeded` means
 the monthly quota is used up and is not recoverable before `Retry-After`: do
 not retry in a loop. Profesional includes 100 scans/month and 10/day; Avanzado includes 400 scans/month and 40/day. Quotas are shared across all company users and channels; Enterprise quotas are per contract. If a saved scan has `deferred_reason=ocr_daily_quota_reached` and `deferred_until`, the original is already safe and processing resumes automatically at that time. Explain the daily wait, preserve the scan ID and do not upload it again or spend retries while deferred. The mailbox always requires human review.
 
-State changes are **discrete tools**, not a generic `change_status`: e.g.
+State changes are **discrete tools**, not a generic status setter: e.g.
 `mark_invoice_as_paid`, `send_invoice`, `void_invoice`, `accept_quote`,
-`convert_quote`, `sign_delivery_note`, `pause_recurring_invoice`. Pick the tool
-that names the transition.
+`convert_quote`, `sign_delivery_note`, `pause_recurring_invoice`,
+`generate_recurring_invoice` (generates the next invoice now, and may issue and
+send it according to the recurrence's `generation_mode`; it needs the
+`recurring_invoices` module and an `idempotency_key`). Pick the tool that names
+the transition.
 
 ## Identity & data shapes
 
@@ -303,36 +474,98 @@ that names the transition.
   ```
 
   Loop while `has_more` is `true`, passing `next_cursor` (or the last `id`) as
-  `starting_after`. There are no page numbers.
+  `starting_after`. There are no page numbers, except in the lists the contract
+  declares as offset lists: the template and brand libraries
+  (`list_pdf_templates`, `list_pdf_commercial_identities`) and the
+  `list_*_presentations` tools take `page` / `per_page` and report `meta.total`.
+  Read the input schema of the tool before looping.
 - **Amounts** are EUR unless stated; **dates** are `YYYY-MM-DD`.
 - **File uploads** (product media, purchase-invoice attachments,
-  FNMT certificates) travel as **base64 strings** in the tool arguments — the
-  MCP transport has no multipart. The server decodes, validates size and magic
-  bytes, then processes. Downloads come back as base64 too.
+  FNMT certificates, PDF template assets) travel as **base64 strings** in the
+  tool arguments — the MCP transport has no multipart, and each tool states its
+  own decoded size limit. The REST API takes the same files as `multipart/form-data`
+  with larger practical room. The server decodes, validates size and magic
+  bytes, then processes. Downloads come back as base64 too, except PDF artifacts,
+  where `read_pdf_artifact` returns an authorized link.
+- **Irreversible tools take `idempotency_key`.** Send one per logical intention
+  (a stable value you keep) on creates, sends, issues, assigns, revisions,
+  renders and uploads, and reuse it only to retry that same call. A new key means
+  a new intention; the same key with different arguments is `422
+  idempotency_key_reused`, and a retry while the first call is still running is
+  `409 idempotency_key_in_use` (wait, then retry with the same key). A replay
+  returns the stored result before any version check, so a retry after a timeout
+  does not fail on your own first attempt.
 
 ## Errors you'll see
 
-Tool failures map to the same envelope as the REST API; branch on the **code**,
-not the human message (messages are in Spanish):
+A failure reaches you in one of two shapes. Both carry the `code` of the REST
+error contract: branch on it, never on the human message (messages are in
+Spanish). Details: <https://docs.factuarea.com/mcp/errors>.
+
+- **Raised inside the tool → a result with `isError: true`.** A business rule, a
+  missing resource or a conflict found while the tool runs does **not** come back
+  as a JSON-RPC error: `tools/call` answers a normal result flagged
+  `isError: true`, so you can read it and correct course. `content[0].text` is
+  the domain message, and `_meta["com.factuarea/error"]` carries the contract:
+  `http_status`, `code`, `hint` and, when they apply, `param`, `subcode` and
+  `details` (for example `existing_resource_id` of a duplicate, or the
+  `attempt_id` of a FACe attempt). Read that `_meta` instead of parsing the text.
+  An `isError` result **without** it is an unexpected server failure: report it
+  and do not retry it in a loop.
+
+  ```json
+  { "isError": true,
+    "content": [{ "type": "text", "text": "<the domain message, in Spanish>" }],
+    "_meta": { "com.factuarea/error": {
+      "http_status": 422, "code": "invoice_not_editable_in_current_state",
+      "hint": "<the same message>" } } }
+  ```
+
+- **Rejected before the tool runs → a JSON-RPC `error`.** Authentication, scopes
+  and plan, throttling, the fiscal guardrails, idempotency and retired tool names
+  are checked first, and nothing runs when they fail. `error.code` is a number
+  in `-32099..-32000` and `error.data` holds the same contract (`code`,
+  `http_status`, `hint`, …). One number covers several causes (`-32005` is both
+  `insufficient_scope` and `module_not_in_plan`), so read `error.data.code`.
+
+The codes you will meet most, in either shape:
 
 - `insufficient_scope` (`403`) — the token/key lacks the tool's `RequiredScope`.
   The fix is to re-authenticate (`/mcp` → Authenticate) and approve the scope,
   or use a key that has it. Remember that the owner-only groups listed under
   *Channel policy* are **API-key only**.
-- `addon_not_active` / module-not-available — the tool's module isn't in the
+- `module_not_in_plan` — the tool's module (see *Tool domains*) isn't in the
   company's plan. Not a bug; the plan must include that module.
+  `addon_not_active` means the company has no active plan with API access at all
+  (an expired trial, a lapsed subscription).
 - `employee_seat_payment_method_required` (`402`) — creating or reactivating an
   employee charges a seat whenever the plan bills (also when the subscription is
   `past_due` or the plan was granted); Enterprise, managed companies and an
   active trial are exempt. The company has no payment method: send the user to
-  `error.details.payment_setup_url`. Nothing was created.
+  `details.payment_setup_url`. Nothing was created.
 - **`422`** — validation or **business-rule violation** (invalid status
   transition, document not in an editable state, payment date out of range).
-  Business-rule violations are `422`, not `403`/`409`.
-- **`409`** — duplicate creation, idempotency-key reuse with a different body,
-  or a concurrency lock. Reuse the same idempotency key only for true retries.
-- **`429`** — throttled. Honour the `Retry-After` header: wait that many seconds
-  before retrying; don't hammer.
+  Business-rule violations are `422`, not `403`/`409`. Also `422`:
+  `idempotency_key_reused` (the same `idempotency_key` with other arguments: use
+  a new key for a new intention) and `mcp_guardrail_violation` (a fiscal rule
+  rejected the call before anything ran: read the resource named by
+  `guardrail_uri` and do the operation that applies, such as annulling instead of
+  deleting; retrying the same call fails again).
+- **`409`** — duplicate creation, a concurrency lock, a stale version (CAS), or
+  `idempotency_key_in_use` (the first call with that key is still running). For
+  a stale version, read again and retry with the new one.
+- **`412` / `428`** — the precondition is stale (`412`) or missing (`428`):
+  see *PDF templates, presentation and artifacts*. Both are recoverable by
+  reading the current state, not by retrying the same arguments.
+- **`429`** / **`503`** — throttled, or a PDF not ready
+  (`pdf_artifact_not_ready`). Honour `Retry-After` (or the `retry_after` field of
+  the result): wait that many seconds before retrying; don't hammer.
+- **`500` with a PDF code** — `pdf_original_unavailable`, `pdf_original_corrupt`,
+  `pdf_original_layout_unavailable` (the original is intact, but this release no
+  longer serves the layout a signature or legal-QR capture keeps),
+  `pdf_engine_profile_unavailable`, `pdf_payload_resource_unavailable` or
+  `pdf_image_resource_unavailable`. The render failed terminally and nothing
+  was queued: do not retry it in a loop; tell the user and point them to support.
 - `401` — not authenticated (kicks off OAuth) or an invalid/expired key.
 
 ## Test mode (sandbox)
@@ -355,6 +588,7 @@ Always build and rehearse in **test mode** first:
 - Authentication (OAuth + API keys): <https://docs.factuarea.com/mcp/authentication>
 - Tools catalog: <https://docs.factuarea.com/mcp/tools>
 - Scopes: <https://docs.factuarea.com/mcp/scopes>
+- PDF templates: <https://docs.factuarea.com/guides/document-templates> · <https://docs.factuarea.com/guides/pdf-template-previews> · <https://docs.factuarea.com/guides/document-presentations> · <https://docs.factuarea.com/guides/invoice-business-data>
 - Errors: <https://docs.factuarea.com/mcp/errors>
 - Test mode: <https://docs.factuarea.com/mcp/test-mode>
 - Docs home: <https://docs.factuarea.com> · OpenAPI: <https://docs.factuarea.com/api/openapi>
@@ -374,4 +608,6 @@ trial included. Create keys in the dashboard or connect over OAuth.
 2. **Stay in the sandbox** until the flow is correct.
 3. **Use the discrete transition tool** for state changes, and surface the
    Spanish `message` (or map by `code`) when a tool returns an error.
-4. **Page with the cursor** (`has_more` / `next_cursor`), never with page numbers.
+4. **Page with the cursor** (`has_more` / `next_cursor`), never with page numbers
+   (the template, brand and presentation-history lists are offset lists: use
+   `page` / `per_page` and `meta.total`).

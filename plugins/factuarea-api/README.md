@@ -42,11 +42,12 @@ They load by context; you can also invoke one by name, e.g.
 
 ### `factuarea-api` — where to start
 
-- **Ten golden rules** — sandbox first, the key prefix as the only environment
+- **Fourteen golden rules** — sandbox first, the key prefix as the only environment
   switch, server-side only, `Idempotency-Key` on writes, opaque UUID v7 ids,
   cursor pagination, branching on `error.code`, document lifecycle transitions,
-  `Retry-After`, raw-body signature verification. Each one points at the skill
-  that goes deep.
+  `Retry-After`, raw-body signature verification, omitted vs `null`, `ETag` +
+  `If-Match`, PDF download outcomes and URLs taken as returned. Each one points at
+  the skill that goes deep.
 - **Documentation lookup that stays on the machine** — `factuarea docs
   list|grep|get` downloads the published corpus once, caches it for 15 minutes
   and filters **locally**, with no API key and without the search term leaving
@@ -63,9 +64,15 @@ They load by context; you can also invoke one by name, e.g.
 - **Choosing the SDK** — `@factuarea/sdk` (Node 20+) or `factuarea/factuarea-php`
   (PHP 8.2+), and what you take on by hand-rolling HTTP instead.
 - **Contract invariants** — opaque UUID v7 `id`s, the `data` envelope, cursor
-  pagination (`has_more` / `next_cursor`, never page numbers), `Idempotency-Key`
+  pagination (`has_more` / `next_cursor`; only the template, brand and
+  presentation-history lists use `page` / `per_page`), `Idempotency-Key`
   on writes, and the key prefix as the only environment switch.
 - **Server-side only** — why there is no browser-safe key, and sandbox first.
+- **Conditional writes and PDFs** — `RequestConfig.ifMatch` / `ifNoneMatch` /
+  `noRetry` / `onResponse` and the `BinaryOrJsonResponse` union in the Node SDK,
+  `--if-match`, `--if-none-match`, `--show-etag` and `--null-<field>` in the CLI,
+  and in the PHP SDK, whose typed methods for the new operations are not
+  generated yet, `RawRequest`, `RequestOverrides`, `ResponseMeta` and `NoRetry`.
 
 ### `factuarea-webhooks` — receiving deliveries
 
@@ -80,8 +87,13 @@ They load by context; you can also invoke one by name, e.g.
 
 ### `factuarea-audit` — reviewing what's already written
 
-- **Six rule families** — webhook signature, idempotency, API-key exposure, error
-  handling by `code`, rate limits, document lifecycle.
+- **Seven rule families** — webhook signature, idempotency, API-key exposure, error
+  handling by `code`, rate limits, document lifecycle, conditional writes and PDF
+  downloads (null sent by accident, stale `ETag`, blind FACe retries, ignored
+  `Retry-After`, rebuilt public URLs), plus a **CE01 to CE25 checklist** of the
+  client flows of the PDF template contract (library, defaults, series,
+  presentation, artifacts, FACe, signature, ZIP, headers and errors); flows the
+  integration does not use are reported as "not used".
 - **Findings with a severity, a `file:line` and a concrete fix** — and explicit
   exemptions per rule, so code that already does the right thing isn't flagged.
 
@@ -90,7 +102,22 @@ They load by context; you can also invoke one by name, e.g.
 - **Drift detection** against the live spec and the published SDK versions.
 - **Breaking vs additive** by the published versioning policy, including how a
   dated `Factuarea-Version` pin changes the answer.
-- **An ordered plan** — breaking first, verified in the sandbox.
+- **An ordered plan** — breaking first, verified in the sandbox, with a checklist
+  for the PDF template, presentation and business-data contract (`pdf()` as a
+  union in Node, typed bodies, conditional `428` that is ignored while revisioned
+  presentation is inactive, `signed_at` deprecated, `pdf_presentation_not_ready`
+  as `422`, `publication_context`, offset lists).
+
+## PDF templates, presentation and business data
+
+The contract for company PDF templates and brands, per-document presentation and
+the structured business data of invoices is covered by the skills above. Portal
+guides:
+
+- [PDF template library](https://docs.factuarea.com/guides/document-templates)
+- [PDF previews and artifacts](https://docs.factuarea.com/guides/pdf-template-previews)
+- [Document presentations](https://docs.factuarea.com/guides/document-presentations)
+- [Invoice business data](https://docs.factuarea.com/guides/invoice-business-data)
 
 ## Resources
 
